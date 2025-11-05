@@ -17,10 +17,11 @@ set(executables
 
 foreach(execu  IN ITEMS ${executables})
   target_include_directories(interpreter PUBLIC
-    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/src/frontend/include
   )
   # 如果 frontend 生成了一个库（例如 libfrontend），需要链接它
-  target_link_libraries(interpreter PRIVATE error)
+  target_link_libraries(interpreter PRIVATE error logger_lib)
 endforeach()
 
 # # Set include directories for interpreter

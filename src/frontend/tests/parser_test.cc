@@ -1,8 +1,8 @@
 #include <sstream>
 #include <fstream>
 
-#include "parser.hh"
-#include "scanner.hh"
+#include "frontend/parser.hh"
+#include "frontend/scanner.hh"
 
 
 

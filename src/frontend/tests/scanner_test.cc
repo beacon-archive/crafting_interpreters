@@ -1,4 +1,4 @@
-#include "scanner.hh"
+#include "frontend/scanner.hh"
 #include <sstream>
 #include <fstream>
 #include <iostream>

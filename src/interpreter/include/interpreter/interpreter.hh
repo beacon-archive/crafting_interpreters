@@ -2,8 +2,8 @@
 
 #include <iostream>
 
-#include "frontend/include/ast.hh"
-#include "frontend/include/error.hh"
+#include "frontend/ast.hh"
+#include "frontend/error.hh"
 
 namespace beacon_lox
 {

@@ -1,7 +1,9 @@
-#include "error.hh"
+#include "frontend/error.hh"
 
 namespace beacon_lox
 {
-// 定义全局错误实例
+// Global error instance that needs to be mutable to track runtime errors
+// throughout the interpreter's execution. While globals are generally
+// discouraged, this is an intentional design choice for error handling.
 Error g_error;
 } // namespace beacon_lox

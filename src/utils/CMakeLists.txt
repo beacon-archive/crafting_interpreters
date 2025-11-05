@@ -26,7 +26,7 @@ target_include_directories(logger_lib PUBLIC
 target_compile_definitions(logger_lib PRIVATE "SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_TRACE")
 target_precompile_headers(logger_lib
         PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/logger.hh
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/utils/logger.hh
 )
 
 

@@ -1,4 +1,5 @@
-#include <spdlog/spdlog.h>
+#include "utils/logger.hh"
+
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/rotating_file_sink.h>
 
@@ -16,9 +17,9 @@ public:
 
     console_sink->set_pattern("[%^%-8l%$] [%Y-%m-%d %H:%M:%S,%e] [%s:%#] %v");
     auto file_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
-        "logs/simulation.log", // 日志文件名
-        1024 * 1024 * 10,      // 10 MB
-        3                      // 保留 3 个滚动文件
+        "/workspace/ci/logs/ci.log", // 日志文件名
+        1024 * 1024 * 10,            // 10 MB
+        3                            // 保留 3 个滚动文件
     );
     file_sink->set_level(spdlog::level::trace); // 文件中记录所有 trace 信息
     file_sink->set_pattern("[%^%-8l%$] [%Y-%m-%d %H:%M:%S,%e] [%s:%#] %v");

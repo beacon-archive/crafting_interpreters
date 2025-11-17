@@ -30,19 +30,5 @@ target_include_directories(error PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-add_executable(test tests/scanner_test.cc)
-add_executable(ast tests/ast_print.cc)
-add_executable(parser tests/parser_test.cc src/error.cc)
+add_subdirectory(tests)
 
-
-set(executables
-  test
-  ast
-  parser
-)
-
-foreach(execu  IN ITEMS ${executables})
-  target_include_directories(${execu} PUBLIC
-      ${CMAKE_CURRENT_SOURCE_DIR}/include
-  )
-endforeach()

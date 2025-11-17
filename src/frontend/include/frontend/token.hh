@@ -1,13 +1,13 @@
 #pragma once
 
 #include <format>
+#include <variant>
 #include <string_view>
 #include <unordered_map>
-#include <variant>
 
 namespace beacon_lox
 {
-enum TokenType
+enum class TokenType
 {
   // Single-character tokens.
   // ()
@@ -60,13 +60,22 @@ enum TokenType
   LOX_EOF
 };
 
+// literal 是：“这个文本能被解释成的真正值是什么？”
 using Literal = std::variant<std::nullptr_t, std::string_view, double, bool>;
-
 
 class Token
 {
 public:
   // lexeme n. 词位，词素
+  //////////////////////////
+  /// @brief  Construct a new Token object
+  ///
+  /// @param type
+  /// @param lexeme   源代码中的原始文本片段(raw text)
+  /// @param literal  把 lexeme 解析后,转换后的"值"(value)
+  /// @param line
+  /// @date 2025-11-17
+  //////////////////////////
   explicit Token(const TokenType type,
                  const std::string_view lexeme,
                  const Literal &literal,

@@ -32,6 +32,12 @@ public:
   }
 
 private:
+  //////////////////////////
+  /// @brief 添加一个 token，没有字面量的 token
+  ///
+  /// @param type
+  /// @date 2025-11-18
+  //////////////////////////
   void
   add_token(TokenType type)
   {
@@ -42,7 +48,7 @@ private:
   /// @brief
   ///
   /// @param type
-  /// @param literal  是当前 token 解析后得到的值
+  /// @param literal  是当前 token 解析后得到的值， ？ 看了下书，说的是字面量
   /// @date 2025-11-17
   //////////////////////////
   void
@@ -78,7 +84,14 @@ private:
   void
   identifier();
 
-  // 当匹配到时, 需要读取
+  //////////////////////////
+  /// @brief  当匹配到时, 需要读取 | 相当于一个有条件的 advance
+  ///
+  /// @param c
+  /// @return true
+  /// @return false
+  /// @date 2025-11-18
+  //////////////////////////
   bool
   match(char c)
   {
@@ -92,6 +105,7 @@ private:
     //   return true;
     // }
     // return false;
+    // 不等于就不消费
     if(source_[cur_] != c)
     {
       return false;
@@ -118,11 +132,18 @@ private:
 
   // 自己写代码时,实际上还是没有想清楚, peek 和 advance 针对的是同一个字符串
   // 只是一个是访问, 一个不访问...
+  // 这个更好的理解是消费！消费一个字符
   char
   advance()
   {
     return source_[cur_++];
   }
+  //////////////////////////
+  /// @brief  这个也就是类似于： lookahead 
+  /// 
+  /// @return char 
+  /// @date 2025-11-18
+  //////////////////////////
   [[nodiscard]] char
   peek() const
   {
@@ -150,11 +171,13 @@ private:
     return cur_ >= source_.size();
   }
 
+  // 表示原始代码字符串
   std::string source_;
+  // 跟踪的是 cur_ 所指向的字符所在的源文件行数
   unsigned long int line_{1};
-  // 存储的是当次扫描开始的位置
+  // 指向的是当前被扫描的词素中的第一个字符
   unsigned long int start_{0};
-  // 表示的是当前改扫描的位置(实际上还没有扫描)
+  // 指向的是当前正在处理的字符
   unsigned long int cur_{0};
   std::string_view contents_;
   std::vector<Token> tokens_;

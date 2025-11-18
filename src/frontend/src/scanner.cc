@@ -97,14 +97,19 @@ Scanner::number()
   // 自己最终的想法是先获取整数,然后判断小数是否为0,如果为零,就在最后加个.0, 否则什么都不加
   while(is_digit(peek()))
   {
-    advance();
+    // advance();
+    ++cur_;
   }
   if(peek() == '.' && is_digit(peek_next()))
   {
-    advance();
+    // 这个消耗的是 .
+    // advance();
+    ++cur_;
+    // 消耗后面的数字
     while(is_digit(peek()))
     {
-      advance();
+      // advance();
+      ++cur_;
     }
   }
   // cur_ 已经代表的是数字结束后的位置了
@@ -116,6 +121,11 @@ Scanner::number()
   //     static_cast<std::string_view>(source_).substr(start_, cur_ - start_));
 }
 
+//////////////////////////
+/// @brief  这里支持多行字符串，有个问题是：禁止换行比允许换行更复杂一些，这是自己没有想到的。
+///
+/// @date 2025-11-18
+//////////////////////////
 void
 Scanner::string()
 {
@@ -149,6 +159,9 @@ Scanner::string()
   // std::cout << "add string:"
   // << source_.substr(start_ + 1, cur_ - 1 - (start_ + 1)) << "\n";
   // 同样的问题
+  // 这里要排除前引号和后引号
+  // 字符串才有字面量： static_cast<std::string_view>(source_).substr(start_ + 1, cur_ - 1 - (start_ + 1))
+  // 有个问题是，这里使用 string_view 是否存在风险
   add_token(
       TokenType::STRING,
       static_cast<std::string_view>(source_).substr(start_ + 1,
@@ -190,6 +203,7 @@ Scanner::scan_token()
     case '*':
       add_token(TokenType::STAR);
       break;
+    // 这里处理的就是 单字符词素， 或者操作符
     case '!':
       add_token(match('=') ? TokenType::BANG_EQUAL : TokenType::BANS);
       break;
@@ -208,6 +222,7 @@ Scanner::scan_token()
     case ' ':
     case '\t':
     // \r 是回车
+    // 有个问题，会车符，需要增加 line 么？
     case '\r':
       break;
     case '/':
@@ -232,13 +247,15 @@ Scanner::scan_token()
       {
         number();
       }
+      // 这里判断的是 保留字(类似于关键字，类名之类的) 和 标识符(应该就是变量名字了)
       else if(is_alpha(c))
       {
         identifier();
       }
       else
       {
-        SPDLOG_ERROR("unknown char: {}", c);
+        // 错误的字符，目前也会被消费，这样就能避免无限循环了
+        SPDLOG_ERROR("Unexpected character: {}", c);
       }
       break;
   }

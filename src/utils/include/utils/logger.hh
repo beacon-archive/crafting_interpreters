@@ -5,3 +5,6 @@
 #endif
 
 #include <spdlog/spdlog.h>
+
+void
+log_init(std::string const &logfile = "/workspace/ci/logs/ci.log");

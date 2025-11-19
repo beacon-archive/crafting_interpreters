@@ -1,4 +1,5 @@
 # 确保spdlog已经被下载和构建
+# src/utils/CMakeLists.txt
 include(FetchContent)
 
 # 如果spdlog还没有被声明，在这里声明
@@ -23,11 +24,12 @@ target_include_directories(logger_lib PUBLIC
     ${spdlog_SOURCE_DIR}/include
 )
 
-target_compile_definitions(logger_lib PRIVATE "SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_TRACE")
-target_precompile_headers(logger_lib
-        PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/utils/logger.hh
-)
+# target_compile_definitions(logger_lib PUBLIC "SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_TRACE")
+target_compile_definitions(logger_lib PUBLIC SPDLOG_ACTIVE_LEVEL=0)
+# target_precompile_headers(logger_lib
+#         PUBLIC
+#         ${CMAKE_CURRENT_SOURCE_DIR}/include/utils/logger.hh
+# )
 
 
 # 链接spdlog库

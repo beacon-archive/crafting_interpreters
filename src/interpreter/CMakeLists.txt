@@ -21,7 +21,7 @@ foreach(execu  IN ITEMS ${executables})
     ${CMAKE_SOURCE_DIR}/src/frontend/include
   )
   # 如果 frontend 生成了一个库（例如 libfrontend），需要链接它
-  target_link_libraries(interpreter PRIVATE error logger_lib)
+  target_link_libraries(interpreter PUBLIC error logger_lib frontend)
 endforeach()
 
 # # Set include directories for interpreter

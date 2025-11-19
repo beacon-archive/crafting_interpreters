@@ -3,6 +3,7 @@
 
 namespace beacon_lox
 {
+
 void
 Scanner::identifier()
 {
@@ -18,76 +19,13 @@ Scanner::identifier()
   // 这里可以节省一次拷贝
   auto iden = std::string_view(source_).substr(start_, cur_ - start_);
   TokenType type{TokenType::IDENTIFIER};
-  if(iden == "class")
+  auto it = keywords.find(std::string(iden));
+  if(it != keywords.end())
   {
-    type = TokenType::CLASS;
-  }
-  else if(iden == "and")
-  {
-    type = TokenType::AND;
-  }
-  else if(iden == "else")
-  {
-    type = TokenType::ELSE;
-  }
-  else if(iden == "false")
-  {
-    type = TokenType::FALSE;
-  }
-  else if(iden == "fun")
-  {
-    type = TokenType::FUN;
-  }
-  else if(iden == "for")
-  {
-    type = TokenType::FOR;
-  }
-  else if(iden == "if")
-  {
-    type = TokenType::IF;
-  }
-  else if(iden == "nil")
-  {
-    type = TokenType::NIL;
-  }
-  else if(iden == "or")
-  {
-    type = TokenType::OR;
-  }
-  else if(iden == "print")
-  {
-    type = TokenType::PRINT;
-  }
-  else if(iden == "return")
-  {
-    type = TokenType::RETURN;
-  }
-  else if(iden == "super")
-  {
-    type = TokenType::SUPER;
-  }
-  else if(iden == "this")
-  {
-    type = TokenType::THIS;
-  }
-  else if(iden == "true")
-  {
-    type = TokenType::TRUE;
-  }
-  else if(iden == "var")
-  {
-    type = TokenType::VAR;
-  }
-  else if(iden == "while")
-  {
-    type = TokenType::WHILE;
-  }
-  else
-  {
-    type = TokenType::IDENTIFIER;
-    // std::cout << "literal:" << iden << "\n";
+    type = it->second;
   }
 
+  // 这里自己突然有个想法，对于标识符，是否需要
   add_token(type);
 }
 

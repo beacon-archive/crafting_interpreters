@@ -260,6 +260,26 @@ const std::unordered_map<TokenType, std::string> token_type_2_string = {
     {TokenType::WHILE, "WHILE"},
     {TokenType::LOX_EOF, "EOF"}};
 
+const std::unordered_map<std::string, TokenType> keywords = {
+    // 这里是在判断是保留字，还是用户自定义的标识符
+    {"class", TokenType::CLASS},
+    {"and", TokenType::AND},
+    {"else", TokenType::ELSE},
+    {"false", TokenType::FALSE},
+    {"fun", TokenType::FUN},
+    {"for", TokenType::FOR},
+    {"if", TokenType::IF},
+    {"nil", TokenType::NIL},
+    {"or", TokenType::OR},
+    {"print", TokenType::PRINT},
+    {"return", TokenType::RETURN},
+    {"super", TokenType::SUPER},
+    {"this", TokenType::THIS},
+    {"true", TokenType::TRUE},
+    {"var", TokenType::VAR},
+    {"while", TokenType::WHILE}};
+
+
 // 这里已经忘记了怎么实现自定义 format 了.
 template <>
 class std::formatter<TokenType>

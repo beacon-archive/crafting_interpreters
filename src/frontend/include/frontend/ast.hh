@@ -1,3 +1,15 @@
+//////////////////////////
+/// @file ast.hh
+/// @brief 代码的表示形式(Expression): 它应该易于解析器生成，也易于解释器使用
+///        从直观上看，我们的代码的一种可行的表示形式是一棵与语言的语法结构(运算符嵌套)相匹配的树
+///        形式化语法的工作就是指定哪些字符串(由token组成的序列，也就是一个表达式)有效，哪些字符串无效。
+///
+/// @version 1.0.0
+/// @author beacon (bquanlicn@gmail.com)
+/// @date 2025-11-19
+/// @copyright Copyright (c) 2025
+//////////////////////////
+
 #pragma once
 
 #include "token.hh"
@@ -5,6 +17,7 @@
 #include <any>
 #include <variant>
 #include <memory>
+
 
 namespace beacon_lox
 {

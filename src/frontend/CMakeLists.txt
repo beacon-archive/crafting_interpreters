@@ -1,15 +1,4 @@
 # src/scanner/CMakeLists.txt
-
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
-
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_CXX_FLAGS_DEBUG "-g")
-set(CMAKE_BUILD_TYPE Debug)
-
-
 add_library(frontend SHARED
    src/scanner.cc
 )
@@ -17,6 +6,7 @@ add_library(frontend SHARED
 target_include_directories(frontend PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
+
 # 确保spdlog可以被frontend使用
 target_link_libraries(frontend PUBLIC
     logger_lib

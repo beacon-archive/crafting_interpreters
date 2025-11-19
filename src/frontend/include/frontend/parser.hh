@@ -8,6 +8,11 @@
 
 namespace beacon_lox
 {
+//////////////////////////
+/// @brief 将词法标记(Token)再次转换为更丰富、更复杂的表示形式(表达式:Expression)。
+///
+/// @date 2025-11-19
+//////////////////////////
 class Parser
 {
 public:
@@ -192,14 +197,14 @@ private:
 
       switch(previos().get_type())
       {
-        case CLASS:
-        case FUN:
-        case VAR:
-        case FOR:
-        case IF:
-        case PRINT:
-        case WHILE:
-        case RETURN:
+        case beacon_lox::TokenType::CLASS:
+        case beacon_lox::TokenType::FUN:
+        case beacon_lox::TokenType::VAR:
+        case beacon_lox::TokenType::FOR:
+        case beacon_lox::TokenType::IF:
+        case beacon_lox::TokenType::PRINT:
+        case beacon_lox::TokenType::WHILE:
+        case beacon_lox::TokenType::RETURN:
           return;
         default:
           break;

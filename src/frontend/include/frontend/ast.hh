@@ -175,12 +175,10 @@ class BinaryExpr : private ExprBase
 public:
   Expr left;
   Token token;
-  BinaryOp op;
   Expr right;
-  explicit BinaryExpr(Expr _left, Token _token, BinaryOp _op, Expr _right)
+  explicit BinaryExpr(Expr _left, Token _token, Expr _right)
     : left(std::move(_left))
     , token(_token)
-    , op(_op)
     , right(std::move(_right))
   {}
   std::any
@@ -195,12 +193,10 @@ class UnaryExpr : private ExprBase
 public:
   Expr expr;
   Token token;
-  UnaryOp op;
 
-  explicit UnaryExpr(Expr _expr, Token _token, UnaryOp _op)
+  explicit UnaryExpr(Expr _expr, Token _token)
     : expr(std::move(_expr))
     , token(_token)
-    , op(_op)
   {}
   std::any
   accept(Visitor *visitor) override
@@ -250,7 +246,7 @@ public:
   {
     return std::format(
         "({} {} {})",
-        unary->op,
+        unary->token.get_type(),
         unary->token.get_lexeme(),
         std::visit([this](const auto &value) -> std::string
                    { return std::any_cast<std::string>(value->accept(this)); },
@@ -261,7 +257,7 @@ public:
   {
     return std::format(
         "({} {} {} {})",
-        binary->op,
+        binary->token.get_type(),
         binary->token.get_lexeme(),
         std::visit([this](const auto &value) -> std::string
                    { return std::any_cast<std::string>(value->accept(this)); },

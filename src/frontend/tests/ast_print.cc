@@ -2,7 +2,6 @@
 #include <format>
 #include <iomanip>
 #include <iostream>
-#include <cmath>
 
 
 
@@ -106,9 +105,7 @@ main()
 
 
   beacon_lox::Expr expr_unary1{
-      std::make_unique<beacon_lox::UnaryExpr>(std::move(*expr_liter1),
-                                              t1,
-                                              beacon_lox::UnaryOp::MINUS)};
+      std::make_unique<beacon_lox::UnaryExpr>(std::move(*expr_liter1), t1)};
   // (MINUS - (beacon))
   std::cout << std::format("expr_unary1:  {}\n",
                            std::any_cast<std::string>(std::visit(
@@ -116,9 +113,7 @@ main()
                                { return value->accept(&visitor); },
                                expr_unary1)));
   beacon_lox::Expr expr_unary2{
-      std::make_unique<beacon_lox::UnaryExpr>(std::move(*expr_liter2),
-                                              t2,
-                                              beacon_lox::UnaryOp::BANS)};
+      std::make_unique<beacon_lox::UnaryExpr>(std::move(*expr_liter2), t2)};
   // (BANS ! (17))
   std::cout << std::format("expr_unary2:  {}\n",
                            std::any_cast<std::string>(std::visit(
@@ -126,20 +121,17 @@ main()
                                { return value->accept(&visitor); },
                                expr_unary2)));
   beacon_lox::Expr expr_unary3{
-      std::make_unique<beacon_lox::UnaryExpr>(std::move(*expr_liter3),
-                                              t2,
-                                              beacon_lox::UnaryOp::BANS)};
+      std::make_unique<beacon_lox::UnaryExpr>(std::move(*expr_liter3), t2)};
   // (BANS ! (true))
   std::cout << std::format("expr_unary3:  {}\n",
                            std::any_cast<std::string>(std::visit(
                                [&visitor](const auto &value) -> std::any
                                { return value->accept(&visitor); },
                                expr_unary3)));
-  beacon_lox::Expr expr_binary1{std::make_unique<beacon_lox::BinaryExpr>(
-      std::move(expr_unary1),
-      t3,
-      beacon_lox::BinaryOp::EQUAL_EQUAL,
-      std::move(expr_unary2))};
+  beacon_lox::Expr expr_binary1{
+      std::make_unique<beacon_lox::BinaryExpr>(std::move(expr_unary1),
+                                               t3,
+                                               std::move(expr_unary2))};
   std::cout << std::format("expr_binary1:  {}\n",
                            std::any_cast<std::string>(std::visit(
                                [&visitor](const auto &value) -> std::any
@@ -148,7 +140,6 @@ main()
   beacon_lox::Expr expr_binary2{
       std::make_unique<beacon_lox::BinaryExpr>(std::move(expr_binary1),
                                                t4,
-                                               beacon_lox::BinaryOp::BANG_EQUAL,
                                                std::move(expr_unary3))};
   std::cout << std::format("expr_binary2:  {}\n",
                            std::any_cast<std::string>(std::visit(
@@ -170,32 +161,25 @@ main2()
 
   beacon_lox::Token minus(beacon_lox::TokenType::MINUS, "-", "-", 2);
   beacon_lox::Expr unary{
-      std::make_unique<beacon_lox::UnaryExpr>(std::move(expr),
-                                              minus,
-                                              beacon_lox::UnaryOp::MINUS)};
+      std::make_unique<beacon_lox::UnaryExpr>(std::move(expr), minus)};
   std::cout << std::format("{}\n", to_string(unary));
 
   beacon_lox::Expr b2{std::make_unique<beacon_lox::UnaryExpr>(
       std::make_unique<beacon_lox::LiteralExpr>(
           beacon_lox::Literal((float)17.2156487)),
-      minus,
-      beacon_lox::UnaryOp::MINUS)};
+      minus)};
   std::cout << std::format("{}\n", to_string(b2));
 
   beacon_lox::Expr b3{
-      std::make_unique<beacon_lox::UnaryExpr>(std::move(b2),
-                                              minus,
-                                              beacon_lox::UnaryOp::MINUS)};
+      std::make_unique<beacon_lox::UnaryExpr>(std::move(b2), minus)};
   std::cout << std::format("{}\n", to_string(b3));
 
 
   beacon_lox::Token star{beacon_lox::TokenType::STAR, "*", "*", 3};
   beacon_lox::Expr s{std::make_unique<beacon_lox::LiteralExpr>("17.364561")};
-  beacon_lox::Expr b4{
-      std::make_unique<beacon_lox::BinaryExpr>(std::move(b3),
-                                               star,
-                                               beacon_lox::BinaryOp::STAR,
-                                               std::move(s))};
+  beacon_lox::Expr b4{std::make_unique<beacon_lox::BinaryExpr>(std::move(b3),
+                                                               star,
+                                                               std::move(s))};
   std::cout << std::format("{}\n", to_string(b4));
 
   float ff = 23.42132;

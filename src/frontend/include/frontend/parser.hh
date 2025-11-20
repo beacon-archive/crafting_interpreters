@@ -22,6 +22,12 @@ public:
   // , end_iter_(tokens_.end())
   {}
 
+  //////////////////////////
+  /// @brief 目前的情况是，一次只能处理一个表达式
+  ///
+  /// @return Expr
+  /// @date 2025-11-20
+  //////////////////////////
   auto
   parse() -> Expr
   {
@@ -39,14 +45,14 @@ private:
   equality() -> Expr
   {
     Expr expr = comparsion();
+    // 满足左结合性
     while(match(TokenType::BANG_EQUAL, TokenType::EQUAL_EQUAL))
     {
       // Token operator = p
-      auto op = previos();
+      auto token = previos();
       Expr right = comparsion();
       expr = std::make_unique<BinaryExpr>(std::move(expr),
-                                          op,
-                                          static_cast<BinaryOp>(op.get_type()),
+                                          token,
                                           std::move(right));
     }
 
@@ -62,12 +68,10 @@ private:
                 TokenType::LESS,
                 TokenType::LESS_EQUAL))
     {
-      auto op = previos();
+      auto token = previos();
       Expr right = term();
-      exp = std::make_unique<BinaryExpr>(std::move(exp),
-                                         op,
-                                         static_cast<BinaryOp>(op.get_type()),
-                                         std::move(right));
+      exp =
+          std::make_unique<BinaryExpr>(std::move(exp), token, std::move(right));
     }
     return exp;
   }
@@ -78,12 +82,10 @@ private:
     Expr exp = factor();
     while(match(TokenType::PLUS, TokenType::MINUS))
     {
-      auto op = previos();
+      auto token = previos();
       Expr right = factor();
-      exp = std::make_unique<BinaryExpr>(std::move(exp),
-                                         op,
-                                         static_cast<BinaryOp>(op.get_type()),
-                                         std::move(right));
+      exp =
+          std::make_unique<BinaryExpr>(std::move(exp), token, std::move(right));
     }
     return exp;
   }
@@ -94,12 +96,10 @@ private:
     Expr exp = unary();
     while(match(TokenType::STAR, TokenType::SLASH))
     {
-      auto op = previos();
+      auto token = previos();
       Expr right = unary();
-      exp = std::make_unique<BinaryExpr>(std::move(exp),
-                                         op,
-                                         static_cast<BinaryOp>(op.get_type()),
-                                         std::move(right));
+      exp =
+          std::make_unique<BinaryExpr>(std::move(exp), token, std::move(right));
     }
     return exp;
   }
@@ -109,12 +109,9 @@ private:
   {
     if(match(TokenType::BANS, TokenType::MINUS))
     {
-      auto op = previos();
+      auto token = previos();
       auto expr = primary();
-      Expr exp =
-          std::make_unique<UnaryExpr>(std::move(expr),
-                                      op,
-                                      static_cast<UnaryOp>(op.get_type()));
+      Expr exp = std::make_unique<UnaryExpr>(std::move(expr), token);
       return exp;
     }
 
@@ -197,14 +194,14 @@ private:
 
       switch(previos().get_type())
       {
-        case beacon_lox::TokenType::CLASS:
-        case beacon_lox::TokenType::FUN:
-        case beacon_lox::TokenType::VAR:
-        case beacon_lox::TokenType::FOR:
-        case beacon_lox::TokenType::IF:
-        case beacon_lox::TokenType::PRINT:
-        case beacon_lox::TokenType::WHILE:
-        case beacon_lox::TokenType::RETURN:
+        case TokenType::CLASS:
+        case TokenType::FUN:
+        case TokenType::VAR:
+        case TokenType::FOR:
+        case TokenType::IF:
+        case TokenType::PRINT:
+        case TokenType::WHILE:
+        case TokenType::RETURN:
           return;
         default:
           break;

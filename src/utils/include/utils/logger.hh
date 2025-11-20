@@ -7,4 +7,4 @@
 #include <spdlog/spdlog.h>
 
 void
-log_init(std::string const &logfile = "/workspace/ci/logs/ci.log");
+init_log(std::string const &logfile = "/workspace/ci/logs/ci.log");

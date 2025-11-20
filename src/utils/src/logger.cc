@@ -6,7 +6,7 @@
 
 
 void
-log_init(std::string const &logfile)
+init_log(std::string const &logfile)
 {
   spdlog::set_pattern("[%l] [%Y-%m-%d %H:%M:%S,%e] [%s:%#] %v");
 

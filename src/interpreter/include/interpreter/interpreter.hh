@@ -52,9 +52,9 @@ public:
   unary_expr_visitor(UnaryExpr *unary) override
   {
     auto value = evaluate(unary->expr);
-    switch(unary->op)
+    switch(unary->token.get_type())
     {
-      case UnaryOp::MINUS:
+      case TokenType::MINUS:
         try
         {
           check_number_operand(unary->token, value);
@@ -66,7 +66,7 @@ public:
           //           << "\n";
           throw Error::RuntimeError(unary->token, "unary minus must be number");
         }
-      case UnaryOp::BANS:
+      case TokenType::BANS:
         // 这里的关键点是, 在 lox 中除了 ture, 其它的都是 false
         return !is_true(value);
       default:
@@ -80,9 +80,9 @@ public:
   {
     auto left = evaluate(binary->left);
     auto right = evaluate(binary->right);
-    switch(binary->op)
+    switch(binary->token.get_type())
     {
-      case BinaryOp::PLUS:
+      case TokenType::PLUS:
         if(is_type<double>(left) && is_type<double>(right))
         {
           return std::any_cast<double>(left) + std::any_cast<double>(right);
@@ -94,29 +94,29 @@ public:
         }
         throw Error::RuntimeError(binary->token, "oprand must be two strings!");
         break;
-      case BinaryOp::BANG_EQUAL:
+      case TokenType::BANG_EQUAL:
         return !is_equal(left, right);
-      case BinaryOp::EQUAL_EQUAL:
+      case TokenType::EQUAL_EQUAL:
         return is_equal(left, right);
-      case BinaryOp::MINUS:
+      case TokenType::MINUS:
         check_number_operand(binary->token, left, right);
         return std::any_cast<double>(left) - std::any_cast<double>(right);
-      case BinaryOp::SLASH:
+      case TokenType::SLASH:
         check_number_operand(binary->token, left, right);
         return std::any_cast<double>(left) / std::any_cast<double>(right);
-      case BinaryOp::STAR:
+      case TokenType::STAR:
         check_number_operand(binary->token, left, right);
         return std::any_cast<double>(left) * std::any_cast<double>(right);
-      case BinaryOp::GREATER:
+      case TokenType::GREATER:
         check_number_operand(binary->token, left, right);
         return std::any_cast<double>(left) > std::any_cast<double>(right);
-      case BinaryOp::GREATER_EQUAL:
+      case TokenType::GREATER_EQUAL:
         check_number_operand(binary->token, left, right);
         return std::any_cast<double>(left) >= std::any_cast<double>(right);
-      case BinaryOp::LESS:
+      case TokenType::LESS:
         check_number_operand(binary->token, left, right);
         return std::any_cast<double>(left) < std::any_cast<double>(right);
-      case BinaryOp::LESS_EQUAL:
+      case TokenType::LESS_EQUAL:
         check_number_operand(binary->token, left, right);
         return std::any_cast<double>(left) <= std::any_cast<double>(right);
         break;

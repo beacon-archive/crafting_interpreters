@@ -4,6 +4,12 @@
 namespace beacon_lox
 {
 
+// 目前这里还没有处理关键字，只是判断是标识符
+// 但是我有一个疑问，关键字应该是标识符的一个子类
+//                这里的关键点在于，自己还是以标识符的组成来考虑的(正则表达式规模)，而非以其含义来考虑
+//                从含义上来将，关键字和标识符是完全不同的东西的！      ===>>>   从含义来思考！
+//      核心点在于: 关键字和标识符在结构上是相同的, 只是在含义上是不同的. 对于关键字的处理, 是在确认它符合标识符的结构之后的！
+//   这里的转变在于，是先处理结构，然后再处理含义！将结构和含义区分开来，自己之前一直是将这两个混为一谈了！
 void
 Scanner::identifier()
 {
@@ -19,6 +25,10 @@ Scanner::identifier()
   // 这里可以节省一次拷贝
   auto iden = std::string_view(source_).substr(start_, cur_ - start_);
   TokenType type{TokenType::IDENTIFIER};
+
+  // 这处理的是关键字！
+  // 使用的是最长匹配原则: maximal munch
+  // 就像 >= 会被视为一个字符，而非 > 后面跟了一个 =
   auto it = keywords.find(std::string(iden));
   if(it != keywords.end())
   {

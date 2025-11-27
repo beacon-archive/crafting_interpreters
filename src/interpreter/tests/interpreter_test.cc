@@ -11,7 +11,7 @@ main(int /*argc*/, char ** /*argv*/)
 {
   // std::string_view path{argv[1]};
   std::stringstream ss;
-  std::fstream file("/workspace/crafting_interpreters/data/bea.lox");
+  std::fstream file("/workspace/ci/data/bea.lox");
   if(!file.is_open())
   {
     return 65;
@@ -39,11 +39,22 @@ main(int /*argc*/, char ** /*argv*/)
 
     beacon_lox::ExprVisitor visitor;
 
-    std::cout << std::format("exp: {}\n",
-                             std::any_cast<std::string>(std::visit(
-                                 [&visitor](const auto &value) -> std::any
-                                 { return value->accept(&visitor); },
-                                 expr)));
+    std::cout << std::format(
+        "exp: {}\n",
+        std::any_cast<std::string>(std::visit(
+            [&visitor](const auto &value) -> std::any
+            {
+              using T = std::decay_t<decltype(value)>;
+              if constexpr(std::is_same_v<T, std::monostate>)
+              {
+                return {"nil"}; // 或者处理空指针逻辑
+              }
+              else
+              {
+                return value->accept(&visitor);
+              }
+            },
+            expr)));
 
     std::cout << "-------------------------\n";
     // 这里有个问题, interpreter 本质是一个 visitor, 所以这里不太清楚应该如何在 Parser 中使用

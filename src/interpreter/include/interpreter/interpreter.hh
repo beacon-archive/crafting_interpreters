@@ -2,8 +2,11 @@
 
 #include <iostream>
 
+
 #include "frontend/ast.hh"
 #include "frontend/error.hh"
+
+#include "utils/logger.hh"
 
 namespace beacon_lox
 {
@@ -17,11 +20,10 @@ public:
     try
     {
       auto value = evaluate(expr);
-      std::cout << "result: " << stringify(value) << "\n";
+      SPDLOG_DEBUG("result: {}", stringify(value));
     }
     catch(const Error::RuntimeError &e)
     {
-      // std::cout << "catch exception: " << e.what() << "\n";
       runtime_error(e);
     }
   }
@@ -39,13 +41,10 @@ public:
     //           << literal->literal.index() << "\n";
 
     // 使用 std::visit 提取并返回具体值
-    return std::visit(
-        [](const auto &value) -> std::any
-        {
-          // 所有类型都可以直接包装到 std::any
-          return std::any{value};
-        },
-        literal->literal);
+    // 所有类型都可以直接包装到 std::any
+    return std::visit([](const auto &value) -> std::any
+                      { return std::any{value}; },
+                      literal->literal);
   }
 
   std::any
@@ -71,7 +70,7 @@ public:
         return !is_true(value);
       default:
         // throw Error::RuntimeError(unary->token, "unkown unary operator");
-        std::cout << "runtime error\n";
+        SPDLOG_ERROR("runtime error, unknown token type");
         return "runtime error";
     }
   }
@@ -120,6 +119,36 @@ public:
         check_number_operand(binary->token, left, right);
         return std::any_cast<double>(left) <= std::any_cast<double>(right);
         break;
+      case TokenType::LEFT_PAREN:
+      case TokenType::RIGHT_PAREN:
+      case TokenType::LEFT_BRACE:
+      case TokenType::RIGHT_BRACE:
+      case TokenType::COMMA:
+      case TokenType::DOT:
+      case TokenType::SEMICOLON:
+      case TokenType::BANS:
+      case TokenType::EQUAL:
+      case TokenType::IDENTIFIER:
+      case TokenType::STRING:
+      case TokenType::NUMBER:
+      case TokenType::AND:
+      case TokenType::CLASS:
+      case TokenType::ELSE:
+      case TokenType::FALSE:
+      case TokenType::FUN:
+      case TokenType::FOR:
+      case TokenType::IF:
+      case TokenType::NIL:
+      case TokenType::OR:
+      case TokenType::PRINT:
+      case TokenType::RETURN:
+      case TokenType::SUPER:
+      case TokenType::THIS:
+      case TokenType::TRUE:
+      case TokenType::VAR:
+      case TokenType::WHILE:
+      case TokenType::LOX_EOF:
+        break;
     }
     return true;
   }
@@ -147,8 +176,23 @@ private:
   {
     // 这里忘记了 variant 的 visit 访问方法, accept 并不是 variant 的, 而是里面的值的
     // return expr.accept(this);
-    return std::visit([this](const auto &value) { return value->accept(this); },
-                      expr);
+    return std::visit(
+        [this](const auto &value) -> std::any
+        {
+          using T = std::decay_t<decltype(value)>;
+
+          // 编译期判断类型
+          if constexpr(std::is_same_v<T, std::monostate>)
+          {
+            return {}; // 返回一个空的 std::any (has_value() 为 false)
+            return std::any{}; // 明确告诉编译器这是 std::any
+          }
+          else
+          {
+            return value->accept(this);
+          }
+        },
+        expr);
   }
 
   std::string

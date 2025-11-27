@@ -18,7 +18,9 @@ main(int /*argc*/, char ** /*argv*/)
   std::fstream file(file_path);
   if(!file.is_open())
   {
-    SPDLOG_ERROR("failed open file {}, error: {}", file_path, std::strerror(errno));
+    SPDLOG_ERROR("failed open file {}, error: {}",
+                 file_path,
+                 std::strerror(errno));
     return 65;
   }
   ss << file.rdbuf();
@@ -42,10 +44,20 @@ main(int /*argc*/, char ** /*argv*/)
 
     beacon_lox::ExprVisitor visitor;
     SPDLOG_DEBUG("exp: {}",
-                 std::any_cast<std::string>(
-                     std::visit([&visitor](const auto &value) -> std::any
-                                { return value->accept(&visitor); },
-                                expr)));
+                 std::any_cast<std::string>(std::visit(
+                     [&visitor](const auto &value) -> std::any
+                     {
+                       using T = std::decay_t<decltype(value)>;
+                       if constexpr(std::is_same_v<T, std::monostate>)
+                       {
+                         return {"nil"}; // 或者处理空指针逻辑
+                       }
+                       else
+                       {
+                         return value->accept(&visitor);
+                       }
+                     },
+                     expr)));
   }
   catch(const std::exception &e)
   {

@@ -51,13 +51,13 @@ to_string(const beacon_lox::Expr &expr)
 {
   switch(expr.index())
   {
-    case 0:
-      return print_literal(std::get<0>(expr));
     case 1:
-      return print_unary(std::get<1>(expr));
+      return print_literal(std::get<1>(expr));
     case 2:
-      return print_binary(std::get<2>(expr));
+      return print_unary(std::get<2>(expr));
     case 3:
+      return print_binary(std::get<3>(expr));
+    case 4:
       return {"22"};
     default:
       //error
@@ -83,19 +83,49 @@ main()
   std::cout << std::format("expr_liter1:  {}\n",
                            std::any_cast<std::string>(std::visit(
                                [&visitor](const auto &value) -> std::any
-                               { return value->accept(&visitor); },
+                               {
+                                 using T = std::decay_t<decltype(value)>;
+                                 if constexpr(std::is_same_v<T, std::monostate>)
+                                 {
+                                   return {"nil"}; // 或者处理空指针逻辑
+                                 }
+                                 else
+                                 {
+                                   return value->accept(&visitor);
+                                 }
+                               },
                                *expr_liter1)));
   //   (17)
   std::cout << std::format("expr_liter2:  {}\n",
                            std::any_cast<std::string>(std::visit(
                                [&visitor](const auto &value) -> std::any
-                               { return value->accept(&visitor); },
+                               {
+                                 using T = std::decay_t<decltype(value)>;
+                                 if constexpr(std::is_same_v<T, std::monostate>)
+                                 {
+                                   return {"nil"}; // 或者处理空指针逻辑
+                                 }
+                                 else
+                                 {
+                                   return value->accept(&visitor);
+                                 }
+                               },
                                *expr_liter2)));
   //  (true)
   std::cout << std::format("expr_liter3:  {}\n",
                            std::any_cast<std::string>(std::visit(
                                [&visitor](const auto &value) -> std::any
-                               { return value->accept(&visitor); },
+                               {
+                                 using T = std::decay_t<decltype(value)>;
+                                 if constexpr(std::is_same_v<T, std::monostate>)
+                                 {
+                                   return {"nil"}; // 或者处理空指针逻辑
+                                 }
+                                 else
+                                 {
+                                   return value->accept(&visitor);
+                                 }
+                               },
                                *expr_liter3)));
 
   beacon_lox::Token t1{beacon_lox::TokenType::MINUS, "-", "-", 21};
@@ -110,7 +140,17 @@ main()
   std::cout << std::format("expr_unary1:  {}\n",
                            std::any_cast<std::string>(std::visit(
                                [&visitor](const auto &value) -> std::any
-                               { return value->accept(&visitor); },
+                               {
+                                 using T = std::decay_t<decltype(value)>;
+                                 if constexpr(std::is_same_v<T, std::monostate>)
+                                 {
+                                   return {"nil"}; // 或者处理空指针逻辑
+                                 }
+                                 else
+                                 {
+                                   return value->accept(&visitor);
+                                 }
+                               },
                                expr_unary1)));
   beacon_lox::Expr expr_unary2{
       std::make_unique<beacon_lox::UnaryExpr>(std::move(*expr_liter2), t2)};
@@ -118,7 +158,17 @@ main()
   std::cout << std::format("expr_unary2:  {}\n",
                            std::any_cast<std::string>(std::visit(
                                [&visitor](const auto &value) -> std::any
-                               { return value->accept(&visitor); },
+                               {
+                                 using T = std::decay_t<decltype(value)>;
+                                 if constexpr(std::is_same_v<T, std::monostate>)
+                                 {
+                                   return {"nil"}; // 或者处理空指针逻辑
+                                 }
+                                 else
+                                 {
+                                   return value->accept(&visitor);
+                                 }
+                               },
                                expr_unary2)));
   beacon_lox::Expr expr_unary3{
       std::make_unique<beacon_lox::UnaryExpr>(std::move(*expr_liter3), t2)};
@@ -126,7 +176,17 @@ main()
   std::cout << std::format("expr_unary3:  {}\n",
                            std::any_cast<std::string>(std::visit(
                                [&visitor](const auto &value) -> std::any
-                               { return value->accept(&visitor); },
+                               {
+                                 using T = std::decay_t<decltype(value)>;
+                                 if constexpr(std::is_same_v<T, std::monostate>)
+                                 {
+                                   return {"nil"}; // 或者处理空指针逻辑
+                                 }
+                                 else
+                                 {
+                                   return value->accept(&visitor);
+                                 }
+                               },
                                expr_unary3)));
   beacon_lox::Expr expr_binary1{
       std::make_unique<beacon_lox::BinaryExpr>(std::move(expr_unary1),
@@ -135,7 +195,17 @@ main()
   std::cout << std::format("expr_binary1:  {}\n",
                            std::any_cast<std::string>(std::visit(
                                [&visitor](const auto &value) -> std::any
-                               { return value->accept(&visitor); },
+                               {
+                                 using T = std::decay_t<decltype(value)>;
+                                 if constexpr(std::is_same_v<T, std::monostate>)
+                                 {
+                                   return {"nil"}; // 或者处理空指针逻辑
+                                 }
+                                 else
+                                 {
+                                   return value->accept(&visitor);
+                                 }
+                               },
                                expr_binary1)));
   beacon_lox::Expr expr_binary2{
       std::make_unique<beacon_lox::BinaryExpr>(std::move(expr_binary1),
@@ -144,7 +214,17 @@ main()
   std::cout << std::format("expr_binary2:  {}\n",
                            std::any_cast<std::string>(std::visit(
                                [&visitor](const auto &value) -> std::any
-                               { return value->accept(&visitor); },
+                               {
+                                 using T = std::decay_t<decltype(value)>;
+                                 if constexpr(std::is_same_v<T, std::monostate>)
+                                 {
+                                   return {"nil"}; // 或者处理空指针逻辑
+                                 }
+                                 else
+                                 {
+                                   return value->accept(&visitor);
+                                 }
+                               },
                                expr_binary2)));
   return 0;
 }

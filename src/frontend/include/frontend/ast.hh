@@ -42,7 +42,6 @@ enum class BinaryOp
   LESS_EQUAL = static_cast<int>(TokenType::LESS_EQUAL),
 };
 
-
 } // namespace beacon_lox
 
 
@@ -131,8 +130,13 @@ using LiteralExprPtr = std::unique_ptr<LiteralExpr>;
 using UnaryExprPtr = std::unique_ptr<UnaryExpr>;
 using BinaryExprPtr = std::unique_ptr<BinaryExpr>;
 using GroupingExprPtr = std::unique_ptr<GroupingExpr>;
-using Expr =
-    std::variant<LiteralExprPtr, UnaryExprPtr, BinaryExprPtr, GroupingExprPtr>;
+
+// 这种是编译期 多态，默认会构建为 std::monostate
+using Expr = std::variant<std::monostate,
+                          LiteralExprPtr,
+                          UnaryExprPtr,
+                          BinaryExprPtr,
+                          GroupingExprPtr>;
 
 class Visitor
 {
@@ -163,6 +167,7 @@ public:
   explicit LiteralExpr(Literal _literal)
     : literal(_literal)
   {}
+
   std::any
   accept(Visitor *visitor) override
   {
@@ -181,6 +186,7 @@ public:
     , token(_token)
     , right(std::move(_right))
   {}
+
   std::any
   accept(Visitor *visitor) override
   {
@@ -208,11 +214,11 @@ public:
 class GroupingExpr : private ExprBase
 {
 public:
+  Expr expr;
+
   explicit GroupingExpr(Expr _expr)
     : expr(std::move(_expr))
   {}
-
-  Expr expr;
 
   std::any
   accept(Visitor *visitor) override
@@ -229,6 +235,7 @@ public:
   {
     return std::format("({})", literal->literal);
   }
+
   // std::any
   // unary_expr_visitor(UnaryExpr *unary) override {
   //! 这里的问题是,这里的表达式是一个 variant, 不是一个 Expr, 不能直接调用其 accept 方法
@@ -244,14 +251,26 @@ public:
   std::any
   unary_expr_visitor(UnaryExpr *unary) override
   {
-    return std::format(
-        "({} {} {})",
-        unary->token.get_type(),
-        unary->token.get_lexeme(),
-        std::visit([this](const auto &value) -> std::string
-                   { return std::any_cast<std::string>(value->accept(this)); },
-                   unary->expr));
+    return std::format("({} {} {})",
+                       unary->token.get_type(),
+                       unary->token.get_lexeme(),
+                       std::visit(
+                           [this](const auto &value) -> std::string
+                           {
+                             using T = std::decay_t<decltype(value)>;
+                             if constexpr(std::is_same_v<T, std::monostate>)
+                             {
+                               return {"nil"}; // 或者处理空指针逻辑
+                             }
+                             else
+                             {
+                               return std::any_cast<std::string>(
+                                   value->accept(this));
+                             }
+                           },
+                           unary->expr));
   }
+
   std::any
   binary_expr_visitor(BinaryExpr *binary) override
   {
@@ -259,21 +278,55 @@ public:
         "({} {} {} {})",
         binary->token.get_type(),
         binary->token.get_lexeme(),
-        std::visit([this](const auto &value) -> std::string
-                   { return std::any_cast<std::string>(value->accept(this)); },
-                   binary->left),
-        std::visit([this](const auto &value) -> std::string
-                   { return std::any_cast<std::string>(value->accept(this)); },
-                   binary->right));
+        std::visit(
+            [this](const auto &value) -> std::string
+            {
+              using T = std::decay_t<decltype(value)>;
+              if constexpr(std::is_same_v<T, std::monostate>)
+              {
+                return {"nil"}; // 或者处理空指针逻辑
+              }
+              else
+              {
+                return std::any_cast<std::string>(value->accept(this));
+              }
+            },
+            binary->left),
+        std::visit(
+            [this](const auto &value) -> std::string
+            {
+              using T = std::decay_t<decltype(value)>;
+              if constexpr(std::is_same_v<T, std::monostate>)
+              {
+                return {"nil"}; // 或者处理空指针逻辑
+              }
+              else
+              {
+                return std::any_cast<std::string>(value->accept(this));
+              }
+            },
+            binary->right));
   }
+
   std::any
   grouping_expr_visitor(GroupingExpr *grouping) override
   {
-    return std::format(
-        "(grouping {})",
-        std::visit([this](const auto &value) -> std::string
-                   { return std::any_cast<std::string>(value->accept(this)); },
-                   grouping->expr));
+    return std::format("(grouping {})",
+                       std::visit(
+                           [this](const auto &value) -> std::string
+                           {
+                             using T = std::decay_t<decltype(value)>;
+                             if constexpr(std::is_same_v<T, std::monostate>)
+                             {
+                               return {"nil"}; // 或者处理空指针逻辑
+                             }
+                             else
+                             {
+                               return std::any_cast<std::string>(
+                                   value->accept(this));
+                             }
+                           },
+                           grouping->expr));
   }
 };
 

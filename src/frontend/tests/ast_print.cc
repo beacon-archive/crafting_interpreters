@@ -135,7 +135,7 @@ main()
 
 
   beacon_lox::Expr expr_unary1{
-      std::make_unique<beacon_lox::UnaryExpr>(std::move(*expr_liter1), t1)};
+      std::make_unique<beacon_lox::UnaryExpr>(t1, std::move(*expr_liter1))};
   // (MINUS - (beacon))
   std::cout << std::format("expr_unary1:  {}\n",
                            std::any_cast<std::string>(std::visit(
@@ -153,7 +153,7 @@ main()
                                },
                                expr_unary1)));
   beacon_lox::Expr expr_unary2{
-      std::make_unique<beacon_lox::UnaryExpr>(std::move(*expr_liter2), t2)};
+      std::make_unique<beacon_lox::UnaryExpr>(t2, std::move(*expr_liter2))};
   // (BANS ! (17))
   std::cout << std::format("expr_unary2:  {}\n",
                            std::any_cast<std::string>(std::visit(
@@ -171,7 +171,7 @@ main()
                                },
                                expr_unary2)));
   beacon_lox::Expr expr_unary3{
-      std::make_unique<beacon_lox::UnaryExpr>(std::move(*expr_liter3), t2)};
+      std::make_unique<beacon_lox::UnaryExpr>(t2, std::move(*expr_liter3))};
   // (BANS ! (true))
   std::cout << std::format("expr_unary3:  {}\n",
                            std::any_cast<std::string>(std::visit(
@@ -241,17 +241,17 @@ main2()
 
   beacon_lox::Token minus(beacon_lox::TokenType::MINUS, "-", "-", 2);
   beacon_lox::Expr unary{
-      std::make_unique<beacon_lox::UnaryExpr>(std::move(expr), minus)};
+      std::make_unique<beacon_lox::UnaryExpr>(minus, std::move(expr))};
   std::cout << std::format("{}\n", to_string(unary));
 
   beacon_lox::Expr b2{std::make_unique<beacon_lox::UnaryExpr>(
+      minus,
       std::make_unique<beacon_lox::LiteralExpr>(
-          beacon_lox::Literal((float)17.2156487)),
-      minus)};
+          beacon_lox::Literal((float)17.2156487)))};
   std::cout << std::format("{}\n", to_string(b2));
 
   beacon_lox::Expr b3{
-      std::make_unique<beacon_lox::UnaryExpr>(std::move(b2), minus)};
+      std::make_unique<beacon_lox::UnaryExpr>(minus, std::move(b2))};
   std::cout << std::format("{}\n", to_string(b3));
 
 

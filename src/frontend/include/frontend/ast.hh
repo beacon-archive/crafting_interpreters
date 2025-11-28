@@ -115,7 +115,19 @@ public:
   }
 };
 
+
+
 } // namespace std
+
+
+
+template <class... Ts>
+struct Overloaded : Ts...
+{
+  using Ts::operator()...;
+};
+template <class... Ts>
+Overloaded(Ts...) -> Overloaded<Ts...>;
 
 
 
@@ -197,12 +209,12 @@ public:
 class UnaryExpr : private ExprBase
 {
 public:
-  Expr expr;
   Token token;
+  Expr expr;
 
-  explicit UnaryExpr(Expr _expr, Token _token)
-    : expr(std::move(_expr))
-    , token(_token)
+  explicit UnaryExpr(Token _token, Expr _expr)
+    : token(_token)
+    , expr(std::move(_expr))
   {}
   std::any
   accept(Visitor *visitor) override
@@ -251,24 +263,18 @@ public:
   std::any
   unary_expr_visitor(UnaryExpr *unary) override
   {
-    return std::format("({} {} {})",
-                       unary->token.get_type(),
-                       unary->token.get_lexeme(),
-                       std::visit(
-                           [this](const auto &value) -> std::string
-                           {
-                             using T = std::decay_t<decltype(value)>;
-                             if constexpr(std::is_same_v<T, std::monostate>)
-                             {
-                               return {"nil"}; // 或者处理空指针逻辑
-                             }
-                             else
-                             {
-                               return std::any_cast<std::string>(
-                                   value->accept(this));
-                             }
-                           },
-                           unary->expr));
+    return std::format(
+        "({} {} {})",
+        unary->token.get_type(),
+        unary->token.get_lexeme(),
+        std::visit(
+            Overloaded{// 专门处理 monostate 的情况
+                       [](std::monostate) -> std::string { return "nil"; },
+                       // 处理其他所有情况 (指针类型)
+                       [this](const auto &val) -> std::string {
+                         return std::any_cast<std::string>(val->accept(this));
+                       }},
+            unary->expr));
   }
 
   std::any
@@ -279,54 +285,36 @@ public:
         binary->token.get_type(),
         binary->token.get_lexeme(),
         std::visit(
-            [this](const auto &value) -> std::string
-            {
-              using T = std::decay_t<decltype(value)>;
-              if constexpr(std::is_same_v<T, std::monostate>)
-              {
-                return {"nil"}; // 或者处理空指针逻辑
-              }
-              else
-              {
-                return std::any_cast<std::string>(value->accept(this));
-              }
-            },
+            Overloaded{// 专门处理 monostate 的情况
+                       [](std::monostate) -> std::string { return "nil"; },
+                       // 处理其他所有情况 (指针类型)
+                       [this](const auto &val) -> std::string {
+                         return std::any_cast<std::string>(val->accept(this));
+                       }},
             binary->left),
         std::visit(
-            [this](const auto &value) -> std::string
-            {
-              using T = std::decay_t<decltype(value)>;
-              if constexpr(std::is_same_v<T, std::monostate>)
-              {
-                return {"nil"}; // 或者处理空指针逻辑
-              }
-              else
-              {
-                return std::any_cast<std::string>(value->accept(this));
-              }
-            },
+            Overloaded{// 专门处理 monostate 的情况
+                       [](std::monostate) -> std::string { return "nil"; },
+                       // 处理其他所有情况 (指针类型)
+                       [this](const auto &val) -> std::string {
+                         return std::any_cast<std::string>(val->accept(this));
+                       }},
             binary->right));
   }
 
   std::any
   grouping_expr_visitor(GroupingExpr *grouping) override
   {
-    return std::format("(grouping {})",
-                       std::visit(
-                           [this](const auto &value) -> std::string
-                           {
-                             using T = std::decay_t<decltype(value)>;
-                             if constexpr(std::is_same_v<T, std::monostate>)
-                             {
-                               return {"nil"}; // 或者处理空指针逻辑
-                             }
-                             else
-                             {
-                               return std::any_cast<std::string>(
-                                   value->accept(this));
-                             }
-                           },
-                           grouping->expr));
+    return std::format(
+        "(grouping {})",
+        std::visit(
+            Overloaded{// 专门处理 monostate 的情况
+                       [](std::monostate) -> std::string { return "nil"; },
+                       // 处理其他所有情况 (指针类型)
+                       [this](const auto &val) -> std::string {
+                         return std::any_cast<std::string>(val->accept(this));
+                       }},
+            grouping->expr));
   }
 };
 

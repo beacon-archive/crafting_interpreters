@@ -1,4 +1,5 @@
 #pragma once
+#include <iostream>
 #include <vector>
 
 #include "error.hh"
@@ -41,16 +42,40 @@ private:
     return equality();
   }
 
+  // 对于 1 == 2 == 3 == 4 
+  // exp: (EQUAL_EQUAL == (EQUAL_EQUAL == (EQUAL_EQUAL == (1.0) (2.0)) (3.0)) (4.0))
   auto
   equality() -> Expr
   {
+    // 对于 1 == 2 == 3 来说
+    // 这里自己最大的问题点是 以为这个 expr 只是1
+    // 然后到了下面的while循环,才得到 1 == 2, 实际上到了这里时, 已经是 1 == 2 了.
+    // error 不对,这里思考的不对....!
+
+    // 实际上不是这里自己思考错了,而是后面的自己思考错了,
+    // Expr right = comparsion(); 对于这个表达式,自己以为得到的就是 2 == 3 了,
+    // 但是实际上它得到的只是一个 2, 而非 2 == 3!
+    // 第一次去匹配时!
+    // good!!!!!
     Expr expr = comparsion();
     // 满足左结合性
+    // 这里自己今天突然觉得应该是右结合性了...
+    // 因为自己想到了一个莫名其妙的情况 a == (b == c)
+    //                                 这里是一个 comparsion
+    //                                 这里自己加了一个括号是因为,这里是一个非终止表达式,会将结果计算完再贴到这里
+    //     这里是自己又想多了,或者说没有专注于当前任务,这里只是表示这个表达式,并没有涉及求值...
+    //  exp: (EQUAL_EQUAL == (EQUAL_EQUAL == (1.0) (2.0)) (3.0))
+    //  虽然表达式的结果和自己预想的一样,但是最终求值的方式和值并不是按照这样来的!
+    //!  不,是自己没有理解到这个 exp, 最外层的是根节点, 它有两个字数,左子树是  (EQUAL_EQUAL == (1.0) (2.0)) 右子树是 (3.0)
+    //! 自己的问题是将, (EQUAL_EQUAL == (EQUAL_EQUAL ==  这里的顺序和 1 == 2 == 3 对应上了!!
+    //!                        自己没有意y到 exp 中的 == 顺序和表达式中的 == 顺序是不同的!
     while(match(TokenType::BANG_EQUAL, TokenType::EQUAL_EQUAL))
     {
       // Token operator = p
+      // 这个获取的是运算符,而非之前的那个表达式
       auto token = previos();
       Expr right = comparsion();
+      // 只有这里构造的 expr 才是包含有 == 或者 != 的, 所以这里一定是左结合性
       expr = std::make_unique<BinaryExpr>(std::move(expr),
                                           token,
                                           std::move(right));
@@ -111,7 +136,7 @@ private:
     {
       auto token = previos();
       auto expr = primary();
-      Expr exp = std::make_unique<UnaryExpr>(std::move(expr), token);
+      Expr exp = std::make_unique<UnaryExpr>(token, std::move(expr));
       return exp;
     }
 
@@ -138,7 +163,6 @@ private:
       auto token = previos();
       return std::make_unique<LiteralExpr>(token.get_literal());
     }
-
     if(match(TokenType::LEFT_PAREN))
     {
       Expr exp = expression();
@@ -146,7 +170,7 @@ private:
       return std::make_unique<GroupingExpr>(std::move(exp));
     }
 
-    throw std::runtime_error("Expect expression.");
+    throw std::runtime_error("Unexpect expression.");
   }
 
   auto

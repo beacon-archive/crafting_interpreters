@@ -9,6 +9,7 @@
 int
 main(int /*argc*/, char ** /*argv*/)
 {
+  init_log();
   // std::string_view path{argv[1]};
   std::stringstream ss;
   std::fstream file("/workspace/ci/data/bea.lox");

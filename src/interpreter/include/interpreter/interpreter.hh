@@ -66,12 +66,12 @@ public:
           throw Error::RuntimeError(unary->token, "unary minus must be number");
         }
       case TokenType::BANS:
-        // 这里的关键点是, 在 lox 中除了 ture, 其它的都是 false
+        // 这里的关键点是, 在 lox 中除了 false 和 nil 是假，其它的都是 true
         return !is_true(value);
       default:
-        // throw Error::RuntimeError(unary->token, "unkown unary operator");
         SPDLOG_ERROR("runtime error, unknown token type");
-        return "runtime error";
+        throw Error::RuntimeError(unary->token, "unkown unary operator");
+        // return "runtime error";
     }
   }
   std::any
@@ -119,39 +119,11 @@ public:
         check_number_operand(binary->token, left, right);
         return std::any_cast<double>(left) <= std::any_cast<double>(right);
         break;
-      case TokenType::LEFT_PAREN:
-      case TokenType::RIGHT_PAREN:
-      case TokenType::LEFT_BRACE:
-      case TokenType::RIGHT_BRACE:
-      case TokenType::COMMA:
-      case TokenType::DOT:
-      case TokenType::SEMICOLON:
-      case TokenType::BANS:
-      case TokenType::EQUAL:
-      case TokenType::IDENTIFIER:
-      case TokenType::STRING:
-      case TokenType::NUMBER:
-      case TokenType::AND:
-      case TokenType::CLASS:
-      case TokenType::ELSE:
-      case TokenType::FALSE:
-      case TokenType::FUN:
-      case TokenType::FOR:
-      case TokenType::IF:
-      case TokenType::NIL:
-      case TokenType::OR:
-      case TokenType::PRINT:
-      case TokenType::RETURN:
-      case TokenType::SUPER:
-      case TokenType::THIS:
-      case TokenType::TRUE:
-      case TokenType::VAR:
-      case TokenType::WHILE:
-      case TokenType::LOX_EOF:
-        break;
+        // 剩下的那些，可以先不考虑
     }
     return true;
   }
+
   std::any
   grouping_expr_visitor(GroupingExpr *grouping) override
   {
@@ -177,21 +149,11 @@ private:
     // 这里忘记了 variant 的 visit 访问方法, accept 并不是 variant 的, 而是里面的值的
     // return expr.accept(this);
     return std::visit(
-        [this](const auto &value) -> std::any
-        {
-          using T = std::decay_t<decltype(value)>;
-
-          // 编译期判断类型
-          if constexpr(std::is_same_v<T, std::monostate>)
-          {
-            return {}; // 返回一个空的 std::any (has_value() 为 false)
-            return std::any{}; // 明确告诉编译器这是 std::any
-          }
-          else
-          {
-            return value->accept(this);
-          }
-        },
+        Overloaded{// 专门处理 monostate 的情况
+                   [](std::monostate) -> std::string { return "nil"; },
+                   // 处理其他所有情况 (指针类型)
+                   [this](const auto &val) -> std::string
+                   { return std::any_cast<std::string>(val->accept(this)); }},
         expr);
   }
 
@@ -246,7 +208,7 @@ private:
   //   }
   //   return left == right;
   // }
-
+  // 这里的类型比较值得自己认真学习一下～
   bool
   is_equal(const std::any &left, const std::any &right)
   {

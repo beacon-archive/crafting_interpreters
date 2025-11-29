@@ -4,7 +4,7 @@ add_library(frontend SHARED
 )
 
 target_include_directories(frontend PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/
 )
 
 # 确保spdlog可以被frontend使用

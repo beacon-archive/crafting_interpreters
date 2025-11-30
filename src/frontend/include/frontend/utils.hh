@@ -5,9 +5,9 @@ namespace beacon_lox
 class Uncopyabble
 {
 public:
-  Uncopyabble(const Uncopyabble &) = delete;
-  Uncopyabble &
-  operator=(const Uncopyabble &) = delete;
+  Uncopyabble(Uncopyabble const&) = delete;
+  Uncopyabble&
+  operator=(Uncopyabble const&) = delete;
 
 protected:
   Uncopyabble() = default;

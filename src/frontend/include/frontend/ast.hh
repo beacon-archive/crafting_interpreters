@@ -53,14 +53,14 @@ class formatter<beacon_lox::UnaryOp>
 {
 public:
   constexpr auto
-  parse(format_parse_context &ctx)
+  parse(format_parse_context& ctx)
   {
     return ctx.begin();
   }
 
   template <typename FormatContext>
   auto
-  format(const beacon_lox::UnaryOp &op, FormatContext &ctx) const
+  format(beacon_lox::UnaryOp const& op, FormatContext& ctx) const
   {
     switch(op)
     {
@@ -79,14 +79,14 @@ class formatter<beacon_lox::BinaryOp>
 {
 public:
   constexpr auto
-  parse(format_parse_context &ctx)
+  parse(format_parse_context& ctx)
   {
     return ctx.begin();
   }
 
   template <typename FormatContext>
   auto
-  format(const beacon_lox::BinaryOp &op, FormatContext &ctx) const
+  format(beacon_lox::BinaryOp const& op, FormatContext& ctx) const
   {
     switch(op)
     {
@@ -156,13 +156,13 @@ class Visitor
 public:
   virtual ~Visitor() = default;
   virtual std::any
-  literal_expr_visitor(LiteralExpr *) = 0;
+  literal_expr_visitor(LiteralExpr*) = 0;
   virtual std::any
-  unary_expr_visitor(UnaryExpr *) = 0;
+  unary_expr_visitor(UnaryExpr*) = 0;
   virtual std::any
-  binary_expr_visitor(BinaryExpr *) = 0;
+  binary_expr_visitor(BinaryExpr*) = 0;
   virtual std::any
-  grouping_expr_visitor(GroupingExpr *) = 0;
+  grouping_expr_visitor(GroupingExpr*) = 0;
 };
 
 class ExprBase : private Uncopyabble
@@ -170,7 +170,7 @@ class ExprBase : private Uncopyabble
 public:
   virtual ~ExprBase() = default;
   virtual std::any
-  accept(Visitor *visitor) = 0;
+  accept(Visitor* visitor) = 0;
 };
 
 class LiteralExpr : private ExprBase
@@ -182,7 +182,7 @@ public:
   {}
 
   std::any
-  accept(Visitor *visitor) override
+  accept(Visitor* visitor) override
   {
     return visitor->literal_expr_visitor(this);
   }
@@ -201,7 +201,7 @@ public:
   {}
 
   std::any
-  accept(Visitor *visitor) override
+  accept(Visitor* visitor) override
   {
     return visitor->binary_expr_visitor(this);
   }
@@ -218,7 +218,7 @@ public:
     , expr(std::move(_expr))
   {}
   std::any
-  accept(Visitor *visitor) override
+  accept(Visitor* visitor) override
   {
     return visitor->unary_expr_visitor(this);
   }
@@ -234,7 +234,7 @@ public:
   {}
 
   std::any
-  accept(Visitor *visitor) override
+  accept(Visitor* visitor) override
   {
     return visitor->grouping_expr_visitor(this);
   }
@@ -244,7 +244,7 @@ class ExprVisitor : public Visitor
 {
 public:
   std::any
-  literal_expr_visitor(LiteralExpr *literal) override
+  literal_expr_visitor(LiteralExpr* literal) override
   {
     return std::format("({})", literal->literal);
   }
@@ -262,7 +262,7 @@ public:
   //                               { return std::format("{}", value); },
   //                               unary->expr));
   std::any
-  unary_expr_visitor(UnaryExpr *unary) override
+  unary_expr_visitor(UnaryExpr* unary) override
   {
     return std::format(
         "({} {} {})",
@@ -273,13 +273,13 @@ public:
                 // 专门处理 monostate 的情况
                 [](std::monostate) -> std::string { return "nil"; },
                 // 处理其他所有情况 (指针类型)
-                [this](const auto &val) -> std::string
+                [this](auto const& val) -> std::string
                 { return std::any_cast<std::string>(val->accept(this)); }},
             unary->expr));
   }
 
   std::any
-  binary_expr_visitor(BinaryExpr *binary) override
+  binary_expr_visitor(BinaryExpr* binary) override
   {
     return std::format(
         "({} {} {} {})",
@@ -290,7 +290,7 @@ public:
                 // 专门处理 monostate 的情况
                 [](std::monostate) -> std::string { return "nil"; },
                 // 处理其他所有情况 (指针类型)
-                [this](const auto &val) -> std::string
+                [this](auto const& val) -> std::string
                 { return std::any_cast<std::string>(val->accept(this)); }},
             binary->left),
         std::visit(
@@ -298,13 +298,13 @@ public:
                 // 专门处理 monostate 的情况
                 [](std::monostate) -> std::string { return "nil"; },
                 // 处理其他所有情况 (指针类型)
-                [this](const auto &val) -> std::string
+                [this](auto const& val) -> std::string
                 { return std::any_cast<std::string>(val->accept(this)); }},
             binary->right));
   }
 
   std::any
-  grouping_expr_visitor(GroupingExpr *grouping) override
+  grouping_expr_visitor(GroupingExpr* grouping) override
   {
     return std::format(
         "(grouping {})",
@@ -313,7 +313,7 @@ public:
                 // 专门处理 monostate 的情况
                 [](std::monostate) -> std::string { return "nil"; },
                 // 处理其他所有情况 (指针类型)
-                [this](const auto &val) -> std::string
+                [this](auto const& val) -> std::string
                 { return std::any_cast<std::string>(val->accept(this)); }},
             grouping->expr));
   }

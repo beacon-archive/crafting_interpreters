@@ -82,7 +82,7 @@ private:
     return equality();
   }
 
-  // 对于 1 == 2 == 3 == 4 
+  // 对于 1 == 2 == 3 == 4
   // exp: (EQUAL_EQUAL == (EQUAL_EQUAL == (EQUAL_EQUAL == (1.0) (2.0)) (3.0)) (4.0))
   auto
   equality() -> Expr
@@ -214,7 +214,7 @@ private:
   }
 
   auto
-  consume(const TokenType &type, std::string_view sv) -> void
+  consume(TokenType const& type, std::string_view sv) -> void
   {
     if(check(type))
     {
@@ -240,7 +240,7 @@ private:
   class ParseError : public std::runtime_error
   {
   public:
-    ParseError(const std::string &message = "Parse error occurred")
+    ParseError(std::string const& message = "Parse error occurred")
       : std::runtime_error(message)
     {}
   };
@@ -310,7 +310,7 @@ private:
   // }
   template <typename... Args>
   [[nodiscard]] auto
-  check(const Args &...args) const -> bool
+  check(Args const&... args) const -> bool
   {
     if(is_at_end())
     {
@@ -343,7 +343,7 @@ private:
   }
 
   [[nodiscard]] auto
-  peek() -> const Token &
+  peek() -> Token const&
   {
     // 感觉这里应该还是要加一个处理的
     //   if(cur_iter_ == end_iter_)
@@ -354,7 +354,7 @@ private:
   }
 
   [[nodiscard]] auto
-  previos() -> const Token &
+  previos() -> Token const&
   {
     return tokens_[cur_ - 1];
   }

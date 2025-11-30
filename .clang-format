@@ -176,7 +176,7 @@ CommentPragmas:  '^ IWYU pragma:'
 # - Left: 位于类型前
 # - Right: 位于类型后
 # - Custom: 自定义
-QualifierAlignment: Leave
+QualifierAlignment: Right
 # 未在文档中找到
 CompactNamespaces: false
 # 构造函数初始化列表缩进, 建议0
@@ -303,12 +303,12 @@ PenaltyExcessCharacter: 1000000
 PenaltyReturnTypeOnItsOwnLine: 60
 PenaltyIndentedWhitespace: 0
 # 指针对齐, 建议Right
-PointerAlignment: Right
+PointerAlignment: Left
 # 引用对齐, 可选:
 # - Pointer: 使用'PointerAlignment'配置, 建议使用
 # - Left: Left
 # - Right: Right
-ReferenceAlignment: Right
+ReferenceAlignment: Left
 # 预处理对齐宽度
 PPIndentWidth:   -1
 # 是否允许clang-format尝试重新粘合注释(true/false), 不建议使用

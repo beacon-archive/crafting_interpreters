@@ -25,7 +25,7 @@ public:
     : source_(std::move(contents))
   {}
 
-  std::vector<Token> &
+  std::vector<Token>&
   scan_tokens()
   {
     while(!is_end())

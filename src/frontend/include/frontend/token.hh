@@ -76,10 +76,10 @@ public:
   /// @param line
   /// @date 2025-11-17
   //////////////////////////
-  explicit Token(const TokenType type,
-                 const std::string_view lexeme,
-                 const Literal &literal,
-                 const unsigned int line)
+  explicit Token(TokenType const type,
+                 std::string_view const lexeme,
+                 Literal const& literal,
+                 unsigned int const line)
     : type_{type}
     , lexeme_{lexeme}
     , literal_{literal}
@@ -127,18 +127,18 @@ template <>
 struct std::formatter<beacon_lox::Literal>
 {
   constexpr auto
-  parse(std::format_parse_context &ctx)
+  parse(std::format_parse_context& ctx)
   {
     return ctx.begin();
   }
 
   auto
-  format(const beacon_lox::Literal &literal, std::format_context &ctx) const
+  format(beacon_lox::Literal const& literal, std::format_context& ctx) const
   {
     // visit 本身需要的也是一个函数对象, 这里使用lambda
     // 没有使用重载的 () 运算符, 而是手动返回
     return std::visit(
-        [&ctx](const auto &value)
+        [&ctx](auto const& value)
         {
           using T = std::decay_t<decltype(value)>;
           // if constexpr(std::is_same_v<T, std::nullptr_t>)
@@ -202,13 +202,13 @@ template <>
 struct std::formatter<beacon_lox::Token>
 {
   constexpr auto
-  parse(std::format_parse_context &ctx)
+  parse(std::format_parse_context& ctx)
   {
     return ctx.begin();
   }
 
   auto
-  format(const beacon_lox::Token &token, std::format_context &ctx) const
+  format(beacon_lox::Token const& token, std::format_context& ctx) const
   {
     // visit 本身需要的也是一个函数对象, 这里使用lambda
     // 没有使用重载的 () 运算符, 而是手动返回
@@ -219,7 +219,7 @@ struct std::formatter<beacon_lox::Token>
 using beacon_lox::TokenType;
 
 // 完整的映射表
-const std::unordered_map<TokenType, std::string> token_type_2_string = {
+std::unordered_map<TokenType, std::string> const token_type_2_string = {
     {TokenType::LEFT_PAREN, "LEFT_PAREN"},
     {TokenType::RIGHT_PAREN, "RIGHT_PAREN"},
     {TokenType::LEFT_BRACE, "LEFT_BRACE"},
@@ -260,7 +260,7 @@ const std::unordered_map<TokenType, std::string> token_type_2_string = {
     {TokenType::WHILE, "WHILE"},
     {TokenType::LOX_EOF, "EOF"}};
 
-const std::unordered_map<std::string, TokenType> keywords = {
+std::unordered_map<std::string, TokenType> const keywords = {
     // 这里是在判断是保留字，还是用户自定义的标识符
     {"class", TokenType::CLASS},
     {"and", TokenType::AND},
@@ -286,7 +286,7 @@ class std::formatter<TokenType>
 {
 public:
   constexpr auto
-  parse(std::format_parse_context &ctx)
+  parse(std::format_parse_context& ctx)
   {
     return ctx.begin();
   }
@@ -294,7 +294,7 @@ public:
 
   template <typename FormatContext>
   auto
-  format(const TokenType &value, FormatContext &context) const
+  format(TokenType const& value, FormatContext& context) const
   {
     auto it = token_type_2_string.find(value);
     std::string str =

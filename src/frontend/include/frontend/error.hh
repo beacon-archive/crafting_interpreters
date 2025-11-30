@@ -22,18 +22,18 @@ public:
   struct RuntimeError : public std::runtime_error
   {
     Token _token;
-    explicit RuntimeError(const Token &token, const std::string &msg)
+    explicit RuntimeError(Token const& token, std::string const& msg)
       : std::runtime_error(msg)
       , _token(token)
     {}
   };
   void
-  error(const long unsigned int line, const std::string_view msg)
+  error(long unsigned int const line, std::string_view const msg)
   {
     report(line, "", msg);
   }
   void
-  error(const Token &token, const std::string_view msg)
+  error(Token const& token, std::string_view const msg)
   {
     if(token.get_type() == TokenType::LOX_EOF)
     {
@@ -47,7 +47,7 @@ public:
   }
 
   void
-  error(const RuntimeError &runtime_error)
+  error(RuntimeError const& runtime_error)
   {
     error(runtime_error._token, runtime_error.what());
   }
@@ -55,9 +55,9 @@ public:
 
 private:
   void
-  report(const long unsigned int line,
-         const std::string_view where,
-         const std::string_view msg)
+  report(long unsigned int const line,
+         std::string_view const where,
+         std::string_view const msg)
   {
     errs_.emplace_back(
         std::format("[line {}] Error{}: {}\n", line, where, msg));

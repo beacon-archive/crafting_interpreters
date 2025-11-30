@@ -7,7 +7,7 @@
 
 
 int
-main(int /*argc*/, char ** /*argv*/)
+main(int /*argc*/, char** /*argv*/)
 {
   init_log();
   // std::string_view path{argv[1]};
@@ -21,7 +21,7 @@ main(int /*argc*/, char ** /*argv*/)
   beacon_lox::Scanner scanner{ss.str()};
   auto tokens = scanner.scan_tokens();
 
-  for(const auto token : tokens)
+  for(auto const token : tokens)
   {
     // std::cout << "format:" << token.get_lexeme() << "\n";
     std::cout << std::format("{} {} {}\n",
@@ -43,7 +43,7 @@ main(int /*argc*/, char ** /*argv*/)
     std::cout << std::format(
         "exp: {}\n",
         std::any_cast<std::string>(std::visit(
-            [&visitor](const auto &value) -> std::any
+            [&visitor](auto const& value) -> std::any
             {
               using T = std::decay_t<decltype(value)>;
               if constexpr(std::is_same_v<T, std::monostate>)
@@ -72,7 +72,7 @@ main(int /*argc*/, char ** /*argv*/)
       return 65;
     }
   }
-  catch(const std::exception &e)
+  catch(std::exception const& e)
   {
     std::cout << "exception: " << e.what() << "\n";
   }

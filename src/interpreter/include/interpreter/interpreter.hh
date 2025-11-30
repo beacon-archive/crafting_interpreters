@@ -15,37 +15,37 @@ class Interpreter : public Visitor
 {
 public:
   void
-  interpret(const Expr &expr)
+  interpret(Expr const& expr)
   {
     try
     {
       auto value = evaluate(expr);
       SPDLOG_DEBUG("result: {}", stringify(value));
     }
-    catch(const Error::RuntimeError &e)
+    catch(Error::RuntimeError const& e)
     {
       runtime_error(e);
     }
   }
 
   void
-  interpret_stmt(const StmtList &statements)
+  interpret_stmt(StmtList const& statements)
   {
     try
     {
-      for(auto const &item : statements)
+      for(auto const& item : statements)
       {
         execute(item);
       }
     }
-    catch(const std::exception &e)
+    catch(std::exception const& e)
     {
       SPDLOG_ERROR("{}", e.what());
     }
   }
 
   std::any
-  literal_expr_visitor(LiteralExpr *literal) override
+  literal_expr_visitor(LiteralExpr* literal) override
   {
     // std::cout << "literal_expr_visitor::literal->literal type:" << literal->literal.index() << "\n";
     // // 这样返回的话, 这里返回的是一个 variant 对象, 而非一个double 类型数值.
@@ -58,13 +58,13 @@ public:
 
     // 使用 std::visit 提取并返回具体值
     // 所有类型都可以直接包装到 std::any
-    return std::visit([](const auto &value) -> std::any
+    return std::visit([](auto const& value) -> std::any
                       { return std::any{value}; },
                       literal->literal);
   }
 
   std::any
-  unary_expr_visitor(UnaryExpr *unary) override
+  unary_expr_visitor(UnaryExpr* unary) override
   {
     auto value = evaluate(unary->expr);
     switch(unary->token.get_type())
@@ -75,7 +75,7 @@ public:
           check_number_operand(unary->token, value);
           return -std::any_cast<double>(value);
         }
-        catch(std::exception &e)
+        catch(std::exception& e)
         {
           // std::cout << "value: " << std::any_cast<std::string>(value)
           //           << "\n";
@@ -92,7 +92,7 @@ public:
   }
 
   std::any
-  binary_expr_visitor(BinaryExpr *binary) override
+  binary_expr_visitor(BinaryExpr* binary) override
   {
     auto left = evaluate(binary->left);
     auto right = evaluate(binary->right);
@@ -142,17 +142,17 @@ public:
   }
 
   std::any
-  grouping_expr_visitor(GroupingExpr *grouping) override
+  grouping_expr_visitor(GroupingExpr* grouping) override
   {
     return evaluate(grouping->expr);
   }
 
   void
-  print_stmt_visitor(Stmt const &stmt)
+  print_stmt_visitor(Stmt const& stmt)
   {
     // 返回的p指向的是 PrintStmtPrt 的指针
     // 所以 p 是一个二级指针! 它不是 std::shared_ptr<PrintStmt>,而是指向这个的指针!
-    if(const auto *p = std::get_if<PrintStmtPrt>(&stmt))
+    if(auto const* p = std::get_if<PrintStmtPrt>(&stmt))
     {
       // 自己突然有个疑问,为什么这里不能直接访问 expr ....
       // auto value = evaluate(p->expr);
@@ -164,7 +164,7 @@ public:
   void
   expression_stmt_visitor(Stmt stmt)
   {
-    if(const auto *p = std::get_if<ExpressionStmtPrt>(&stmt))
+    if(auto const* p = std::get_if<ExpressionStmtPrt>(&stmt))
     {
       // 自己突然有个疑问,为什么这里不能直接访问 expr ....
       // auto value = evaluate(p->expr);
@@ -188,16 +188,16 @@ private:
   void
   execute(Stmt stmt)
   {
-    std::visit(Overloaded{[this](const ExpressionStmtPrt &expr) -> void
+    std::visit(Overloaded{[this](ExpressionStmtPrt const& expr) -> void
                           { expression_stmt_visitor(expr); },
-                          [this](const PrintStmtPrt &expr) -> void
+                          [this](PrintStmtPrt const& expr) -> void
                           { print_stmt_visitor(expr); },
-                          [](auto const &) {}},
+                          [](auto const&) {}},
                stmt);
   }
 
   std::any
-  evaluate(const Expr &expr)
+  evaluate(Expr const& expr)
   {
     // 这里忘记了 variant 的 visit 访问方法, accept 并不是 variant 的, 而是里面的值的
     // return expr.accept(this);
@@ -205,7 +205,7 @@ private:
         Overloaded{// 专门处理 monostate 的情况
                    [](std::monostate) -> std::string { return "nil"; },
                    // 处理其他所有情况 (指针类型)
-                   [this](const auto &val) -> std::string
+                   [this](auto const& val) -> std::string
                    { return std::any_cast<std::string>(val->accept(this)); }},
         expr);
   }
@@ -263,7 +263,7 @@ private:
   // }
   // 这里的类型比较值得自己认真学习一下～
   bool
-  is_equal(const std::any &left, const std::any &right)
+  is_equal(std::any const& left, std::any const& right)
   {
     // 1. 两个都是空值（std::nullptr_t）
     if(is_type<std::nullptr_t>(left) && is_type<std::nullptr_t>(right))
@@ -298,7 +298,7 @@ private:
       // 如果类型不支持比较，抛出异常或返回 false
       return false;
     }
-    catch(const std::bad_any_cast &)
+    catch(std::bad_any_cast const&)
     {
       return false; // 转换失败时返回 false
     }
@@ -306,13 +306,13 @@ private:
 
   template <typename T>
   bool
-  is_type(const std::any &any)
+  is_type(std::any const& any)
   {
     return any.type() == typeid(T);
   }
 
   void
-  check_number_operand(const Token &token, const std::any &operand)
+  check_number_operand(Token const& token, std::any const& operand)
   {
     if(is_type<double>(operand))
     {
@@ -323,9 +323,9 @@ private:
   }
 
   void
-  check_number_operand(const Token &token,
-                       const std::any &left,
-                       const std::any &right)
+  check_number_operand(Token const& token,
+                       std::any const& left,
+                       std::any const& right)
   {
     if(is_type<double>(left) && is_type<double>(right))
     {
@@ -336,7 +336,7 @@ private:
   }
 
   void
-  runtime_error(const Error::RuntimeError &rerr)
+  runtime_error(Error::RuntimeError const& rerr)
   {
     std::cout << std::format("{} [line:{}]\n",
                              rerr.what(),

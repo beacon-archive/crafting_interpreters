@@ -6,18 +6,18 @@
 
 
 std::string
-to_string(const beacon_lox::Expr &expr);
+to_string(beacon_lox::Expr const& expr);
 
 
 std::string
-parenthesize(std::string_view name, const beacon_lox::Expr &expr)
+parenthesize(std::string_view name, beacon_lox::Expr const& expr)
 {
   return std::format("({}{})", name, to_string(expr));
 }
 std::string
 parenthesize(std::string_view name,
-             const beacon_lox::Expr &expr1,
-             const beacon_lox::Expr &expr2)
+             beacon_lox::Expr const& expr1,
+             beacon_lox::Expr const& expr2)
 {
   return std::format("({} {} {})", name, to_string(expr1), to_string(expr2));
 }
@@ -25,20 +25,20 @@ parenthesize(std::string_view name,
 
 
 std::string
-print_unary(const beacon_lox::UnaryExprPtr &expr)
+print_unary(beacon_lox::UnaryExprPtr const& expr)
 {
   return parenthesize(expr->token.get_lexeme(), expr->expr);
 }
 
 std::string
-print_literal(const beacon_lox::LiteralExprPtr &expr)
+print_literal(beacon_lox::LiteralExprPtr const& expr)
 {
   // return parenthesize(expr->literal);
   return std::format("({})", expr->literal);
 }
 
 std::string
-print_binary(const beacon_lox::BinaryExprPtr &expr)
+print_binary(beacon_lox::BinaryExprPtr const& expr)
 {
   return std::format("({} {} {})",
                      expr->token.get_lexeme(),
@@ -47,7 +47,7 @@ print_binary(const beacon_lox::BinaryExprPtr &expr)
 }
 
 std::string
-to_string(const beacon_lox::Expr &expr)
+to_string(beacon_lox::Expr const& expr)
 {
   switch(expr.index())
   {
@@ -82,7 +82,7 @@ main()
   //  (beacon)
   std::cout << std::format("expr_liter1:  {}\n",
                            std::any_cast<std::string>(std::visit(
-                               [&visitor](const auto &value) -> std::any
+                               [&visitor](auto const& value) -> std::any
                                {
                                  using T = std::decay_t<decltype(value)>;
                                  if constexpr(std::is_same_v<T, std::monostate>)
@@ -98,7 +98,7 @@ main()
   //   (17)
   std::cout << std::format("expr_liter2:  {}\n",
                            std::any_cast<std::string>(std::visit(
-                               [&visitor](const auto &value) -> std::any
+                               [&visitor](auto const& value) -> std::any
                                {
                                  using T = std::decay_t<decltype(value)>;
                                  if constexpr(std::is_same_v<T, std::monostate>)
@@ -114,7 +114,7 @@ main()
   //  (true)
   std::cout << std::format("expr_liter3:  {}\n",
                            std::any_cast<std::string>(std::visit(
-                               [&visitor](const auto &value) -> std::any
+                               [&visitor](auto const& value) -> std::any
                                {
                                  using T = std::decay_t<decltype(value)>;
                                  if constexpr(std::is_same_v<T, std::monostate>)
@@ -139,7 +139,7 @@ main()
   // (MINUS - (beacon))
   std::cout << std::format("expr_unary1:  {}\n",
                            std::any_cast<std::string>(std::visit(
-                               [&visitor](const auto &value) -> std::any
+                               [&visitor](auto const& value) -> std::any
                                {
                                  using T = std::decay_t<decltype(value)>;
                                  if constexpr(std::is_same_v<T, std::monostate>)
@@ -157,7 +157,7 @@ main()
   // (BANS ! (17))
   std::cout << std::format("expr_unary2:  {}\n",
                            std::any_cast<std::string>(std::visit(
-                               [&visitor](const auto &value) -> std::any
+                               [&visitor](auto const& value) -> std::any
                                {
                                  using T = std::decay_t<decltype(value)>;
                                  if constexpr(std::is_same_v<T, std::monostate>)
@@ -175,7 +175,7 @@ main()
   // (BANS ! (true))
   std::cout << std::format("expr_unary3:  {}\n",
                            std::any_cast<std::string>(std::visit(
-                               [&visitor](const auto &value) -> std::any
+                               [&visitor](auto const& value) -> std::any
                                {
                                  using T = std::decay_t<decltype(value)>;
                                  if constexpr(std::is_same_v<T, std::monostate>)
@@ -194,7 +194,7 @@ main()
                                                std::move(expr_unary2))};
   std::cout << std::format("expr_binary1:  {}\n",
                            std::any_cast<std::string>(std::visit(
-                               [&visitor](const auto &value) -> std::any
+                               [&visitor](auto const& value) -> std::any
                                {
                                  using T = std::decay_t<decltype(value)>;
                                  if constexpr(std::is_same_v<T, std::monostate>)
@@ -213,7 +213,7 @@ main()
                                                std::move(expr_unary3))};
   std::cout << std::format("expr_binary2:  {}\n",
                            std::any_cast<std::string>(std::visit(
-                               [&visitor](const auto &value) -> std::any
+                               [&visitor](auto const& value) -> std::any
                                {
                                  using T = std::decay_t<decltype(value)>;
                                  if constexpr(std::is_same_v<T, std::monostate>)

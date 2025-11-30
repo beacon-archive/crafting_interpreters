@@ -18,7 +18,7 @@ run(std::string_view source)
   beacon_lox::Scanner scanner{std::string(source)};
   auto tokens = scanner.scan_tokens();
 
-  for(const auto token : tokens)
+  for(auto const token : tokens)
   {
     SPDLOG_DEBUG("{}",
                  std::format("{} {} {}",
@@ -32,7 +32,7 @@ run(std::string_view source)
 
 // 2. 文件模式 (类似 python script.py)
 void
-run_file(const char *path)
+run_file(char const* path)
 {
   std::ifstream file(path);
   if(!file.is_open())
@@ -90,7 +90,7 @@ run_prompt()
 }
 
 int
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
   init_log(); // 你的日志初始化
 

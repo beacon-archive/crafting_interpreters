@@ -58,8 +58,19 @@ public:
 
     // 使用 std::visit 提取并返回具体值
     // 所有类型都可以直接包装到 std::any
-    return std::visit([](auto const& value) -> std::any
-                      { return std::any{value}; },
+    // 这样的话,返回的类型就不是统一的 string 了,可能是double,可能是string...
+    // return std::visit([](auto const& value) -> std::any
+    //                   { return std::any{value}; },
+    //                   literal->literal);
+
+    return std::visit(Overloaded{[](double const& value) -> std::any
+                                 { return std::to_string(value); },
+                                 [](bool const& value) -> std::any
+                                 { return value ? "true" : "false"; },
+                                 [](std::string_view const& value) -> std::any
+                                 { return std::string(value); },
+                                 [](auto const& value) -> std::any
+                                 { return std::any{value}; }},
                       literal->literal);
   }
 
@@ -156,8 +167,13 @@ public:
     {
       // 自己突然有个疑问,为什么这里不能直接访问 expr ....
       // auto value = evaluate(p->expr);
+      // if(*p == nullptr)
+      // {
+      //   SPDLOG_ERROR("sssssss");
+      //   return;
+      // }
       auto value = evaluate(p->get()->expr);
-      std::cout << std::any_cast<std::string>(value);
+      std::cout << std::any_cast<std::string>(value) << "\n";
     }
   }
 
@@ -201,13 +217,30 @@ private:
   {
     // 这里忘记了 variant 的 visit 访问方法, accept 并不是 variant 的, 而是里面的值的
     // return expr.accept(this);
-    return std::visit(
-        Overloaded{// 专门处理 monostate 的情况
-                   [](std::monostate) -> std::string { return "nil"; },
-                   // 处理其他所有情况 (指针类型)
-                   [this](auto const& val) -> std::string
-                   { return std::any_cast<std::string>(val->accept(this)); }},
-        expr);
+    return std::visit(Overloaded{// 专门处理 monostate 的情况
+                                 [](std::monostate) -> std::string
+                                 { return "nil"; },
+                                 // 处理其他所有情况 (指针类型)
+                                 [this](auto const& val) -> std::string
+                                 {
+                                   auto value = val->accept(this);
+                                   //  std::type_info const& ti = value.type();
+                                   //  if(value.type() == typeid(std::string))
+                                   //  {
+                                   //    return std::any_cast<std::string>(value);
+                                   //  }
+                                   //  if(value.type() == typeid(double))
+                                   //  {
+                                   //    auto d = std::any_cast<double>(value);
+                                   //    return std::to_string(d); // 转成字符串
+                                   //  }
+                                   //  std::cerr << "不支持的类型: " << value.type().name()
+                                   //            << std::endl;
+                                   //  return "";
+                                   //  std::cout << "存储的类型: " << ti.name() << '\n';
+                                   return std::any_cast<std::string>(value);
+                                 }},
+                      expr);
   }
 
   std::string

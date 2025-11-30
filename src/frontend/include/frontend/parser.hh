@@ -64,7 +64,8 @@ private:
   {
     Expr value = expression();
     consume(TokenType::SEMICOLON, "Expect ';' after value.");
-    return std::make_shared<PrintStmt>(value);
+
+    return std::make_shared<PrintStmt>(std::move(value));
   }
 
   auto
@@ -72,7 +73,7 @@ private:
   {
     Expr expr = expression();
     consume(TokenType::SEMICOLON, "Expect ';' after expression.");
-    return std::make_shared<ExpressionStmt>(expr);
+    return std::make_shared<ExpressionStmt>(std::move(expr));
   }
 
 

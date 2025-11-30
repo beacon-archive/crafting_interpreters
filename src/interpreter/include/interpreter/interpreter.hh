@@ -28,6 +28,22 @@ public:
     }
   }
 
+  void
+  interpret_stmt(const StmtList &statements)
+  {
+    try
+    {
+      for(auto const &item : statements)
+      {
+        execute(item);
+      }
+    }
+    catch(const std::exception &e)
+    {
+      SPDLOG_ERROR("{}", e.what());
+    }
+  }
+
   std::any
   literal_expr_visitor(LiteralExpr *literal) override
   {
@@ -74,6 +90,7 @@ public:
         // return "runtime error";
     }
   }
+
   std::any
   binary_expr_visitor(BinaryExpr *binary) override
   {
@@ -130,6 +147,31 @@ public:
     return evaluate(grouping->expr);
   }
 
+  void
+  print_stmt_visitor(Stmt const &stmt)
+  {
+    // 返回的p指向的是 PrintStmtPrt 的指针
+    // 所以 p 是一个二级指针! 它不是 std::shared_ptr<PrintStmt>,而是指向这个的指针!
+    if(const auto *p = std::get_if<PrintStmtPrt>(&stmt))
+    {
+      // 自己突然有个疑问,为什么这里不能直接访问 expr ....
+      // auto value = evaluate(p->expr);
+      auto value = evaluate(p->get()->expr);
+      std::cout << std::any_cast<std::string>(value);
+    }
+  }
+
+  void
+  expression_stmt_visitor(Stmt stmt)
+  {
+    if(const auto *p = std::get_if<ExpressionStmtPrt>(&stmt))
+    {
+      // 自己突然有个疑问,为什么这里不能直接访问 expr ....
+      // auto value = evaluate(p->expr);
+      evaluate(p->get()->expr);
+    }
+  }
+
   [[nodiscard]] bool
   had_runtime_error() const
   {
@@ -143,6 +185,17 @@ public:
   }
 
 private:
+  void
+  execute(Stmt stmt)
+  {
+    std::visit(Overloaded{[this](const ExpressionStmtPrt &expr) -> void
+                          { expression_stmt_visitor(expr); },
+                          [this](const PrintStmtPrt &expr) -> void
+                          { print_stmt_visitor(expr); },
+                          [](auto const &) {}},
+               stmt);
+  }
+
   std::any
   evaluate(const Expr &expr)
   {

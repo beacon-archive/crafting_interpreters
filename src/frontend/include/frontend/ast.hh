@@ -15,6 +15,7 @@
 #include "token.hh"
 #include "utils.hh"
 #include <any>
+#include <list>
 #include <variant>
 #include <memory>
 
@@ -268,12 +269,12 @@ public:
         unary->token.get_type(),
         unary->token.get_lexeme(),
         std::visit(
-            Overloaded{// 专门处理 monostate 的情况
-                       [](std::monostate) -> std::string { return "nil"; },
-                       // 处理其他所有情况 (指针类型)
-                       [this](const auto &val) -> std::string {
-                         return std::any_cast<std::string>(val->accept(this));
-                       }},
+            Overloaded{
+                // 专门处理 monostate 的情况
+                [](std::monostate) -> std::string { return "nil"; },
+                // 处理其他所有情况 (指针类型)
+                [this](const auto &val) -> std::string
+                { return std::any_cast<std::string>(val->accept(this)); }},
             unary->expr));
   }
 
@@ -285,20 +286,20 @@ public:
         binary->token.get_type(),
         binary->token.get_lexeme(),
         std::visit(
-            Overloaded{// 专门处理 monostate 的情况
-                       [](std::monostate) -> std::string { return "nil"; },
-                       // 处理其他所有情况 (指针类型)
-                       [this](const auto &val) -> std::string {
-                         return std::any_cast<std::string>(val->accept(this));
-                       }},
+            Overloaded{
+                // 专门处理 monostate 的情况
+                [](std::monostate) -> std::string { return "nil"; },
+                // 处理其他所有情况 (指针类型)
+                [this](const auto &val) -> std::string
+                { return std::any_cast<std::string>(val->accept(this)); }},
             binary->left),
         std::visit(
-            Overloaded{// 专门处理 monostate 的情况
-                       [](std::monostate) -> std::string { return "nil"; },
-                       // 处理其他所有情况 (指针类型)
-                       [this](const auto &val) -> std::string {
-                         return std::any_cast<std::string>(val->accept(this));
-                       }},
+            Overloaded{
+                // 专门处理 monostate 的情况
+                [](std::monostate) -> std::string { return "nil"; },
+                // 处理其他所有情况 (指针类型)
+                [this](const auto &val) -> std::string
+                { return std::any_cast<std::string>(val->accept(this)); }},
             binary->right));
   }
 
@@ -308,14 +309,47 @@ public:
     return std::format(
         "(grouping {})",
         std::visit(
-            Overloaded{// 专门处理 monostate 的情况
-                       [](std::monostate) -> std::string { return "nil"; },
-                       // 处理其他所有情况 (指针类型)
-                       [this](const auto &val) -> std::string {
-                         return std::any_cast<std::string>(val->accept(this));
-                       }},
+            Overloaded{
+                // 专门处理 monostate 的情况
+                [](std::monostate) -> std::string { return "nil"; },
+                // 处理其他所有情况 (指针类型)
+                [this](const auto &val) -> std::string
+                { return std::any_cast<std::string>(val->accept(this)); }},
             grouping->expr));
   }
+};
+
+
+////////////////////////////////////////////////////////
+/// stmt
+
+class ExpressionStmt;
+class PrintStmt;
+
+using ExpressionStmtPrt = std::shared_ptr<ExpressionStmt>;
+using PrintStmtPrt = std::shared_ptr<PrintStmt>;
+
+using Stmt = std::variant<std::monostate, ExpressionStmtPrt, PrintStmtPrt>;
+
+using StmtList = std::list<Stmt>;
+
+// 所以,一个表达式语句,其实也是一个表达式,然后加了 ; 么?
+class ExpressionStmt : public Uncopyabble
+{
+public:
+  Expr expr;
+  explicit ExpressionStmt(Expr expression)
+    : expr{std::move(expression)}
+  {}
+};
+
+class PrintStmt
+{
+public:
+  Expr expr;
+  explicit PrintStmt(Expr expression)
+    : expr{std::move(expression)}
+  {}
 };
 
 } // namespace beacon_lox

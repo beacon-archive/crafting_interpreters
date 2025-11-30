@@ -9,7 +9,7 @@
 
 namespace beacon_lox
 {
-enum class LoxStatus
+enum class LoxStatus : int8_t
 {
   OK,
   ERROR

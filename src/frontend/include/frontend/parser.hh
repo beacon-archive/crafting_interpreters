@@ -1,5 +1,4 @@
 #pragma once
-#include <iostream>
 #include <vector>
 
 #include "error.hh"
@@ -35,7 +34,48 @@ public:
     return expression();
   }
 
+  auto
+  parse_stmt() -> StmtList
+  {
+    StmtList statements;
+    while(!is_at_end())
+    {
+      statements.push_back(statement());
+    }
+
+    return statements;
+  }
+
 private:
+  auto
+  statement() -> Stmt
+  {
+    // 这里 PRINT 也是一个 token,自己一开始想着是不是该去匹配字符串...
+    // 自己还是有些没有转变过来...在解析器中,所有的的都是token!!!!
+    if(match(TokenType::PRINT))
+    {
+      return print_statement();
+    }
+    return expression_statement();
+  }
+
+  auto
+  print_statement() -> Stmt
+  {
+    Expr value = expression();
+    consume(TokenType::SEMICOLON, "Expect ';' after value.");
+    return std::make_shared<PrintStmt>(value);
+  }
+
+  auto
+  expression_statement() -> Stmt
+  {
+    Expr expr = expression();
+    consume(TokenType::SEMICOLON, "Expect ';' after expression.");
+    return std::make_shared<ExpressionStmt>(expr);
+  }
+
+
   auto
   expression() -> Expr
   {

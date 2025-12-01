@@ -121,7 +121,10 @@ public:
 } // namespace std
 
 
-
+// Overload 把多个 lambda 合并到一个对象中，并把它们的 operator() 全部引入到对象中。visit 调用这个对象的重载 operator()，因此根据类型自动选中正确的 lambda。
+// visit 的函数签名:
+//                visit(_Visitor&& __visitor, _Variants&&... __variants)
+// 本身就是传入一个访问器,然后调用访问对应的()操作符来处理对应的类型,或者传入lambda
 template <class... Ts>
 struct Overloaded : Ts...
 {
@@ -138,18 +141,22 @@ class LiteralExpr;
 class UnaryExpr;
 class BinaryExpr;
 class GroupingExpr;
+class VarExpr;
+class Assignable;
 
 using LiteralExprPtr = std::unique_ptr<LiteralExpr>;
 using UnaryExprPtr = std::unique_ptr<UnaryExpr>;
 using BinaryExprPtr = std::unique_ptr<BinaryExpr>;
 using GroupingExprPtr = std::unique_ptr<GroupingExpr>;
+using VarExprPtr = std::unique_ptr<VarExpr>;
 
 // 这种是编译期 多态，默认会构建为 std::monostate
 using Expr = std::variant<std::monostate,
                           LiteralExprPtr,
                           UnaryExprPtr,
                           BinaryExprPtr,
-                          GroupingExprPtr>;
+                          GroupingExprPtr,
+                          VarExprPtr>;
 
 class Visitor
 {
@@ -163,6 +170,13 @@ public:
   binary_expr_visitor(BinaryExpr*) = 0;
   virtual std::any
   grouping_expr_visitor(GroupingExpr*) = 0;
+  virtual std::any
+  var_expr_visitor(VarExpr*) = 0;
+  virtual std::any
+  assian_expr_visitor(Assignable* /*unused*/)
+  {
+    return {};
+  }
 };
 
 class ExprBase : private Uncopyabble
@@ -221,6 +235,34 @@ public:
   accept(Visitor* visitor) override
   {
     return visitor->unary_expr_visitor(this);
+  }
+};
+
+class Assignable : private ExprBase
+{
+public:
+  Token name;
+  mutable signed long distance{-1};
+  mutable bool is_captured{false};
+  explicit Assignable(Token const& _name)
+    : name(_name)
+  {}
+  std::any
+  accept(Visitor* visitor) override
+  {
+    return visitor->assian_expr_visitor(this);
+  }
+};
+class VarExpr : Assignable
+{
+public:
+  explicit VarExpr(Token const& _token)
+    : Assignable(_token)
+  {}
+  std::any
+  accept(Visitor* visitor) override
+  {
+    return visitor->var_expr_visitor(this);
   }
 };
 
@@ -325,11 +367,14 @@ public:
 
 class ExpressionStmt;
 class PrintStmt;
+class VarStmt;
 
 using ExpressionStmtPrt = std::shared_ptr<ExpressionStmt>;
 using PrintStmtPrt = std::shared_ptr<PrintStmt>;
+using VarStmtPrt = std::shared_ptr<VarStmt>;
 
-using Stmt = std::variant<std::monostate, ExpressionStmtPrt, PrintStmtPrt>;
+using Stmt =
+    std::variant<std::monostate, ExpressionStmtPrt, PrintStmtPrt, VarStmtPrt>;
 
 using StmtList = std::list<Stmt>;
 
@@ -343,12 +388,23 @@ public:
   {}
 };
 
-class PrintStmt
+class PrintStmt : public Uncopyabble
 {
 public:
   Expr expr;
   explicit PrintStmt(Expr expression)
     : expr{std::move(expression)}
+  {}
+};
+
+class VarStmt : public Uncopyabble
+{
+public:
+  Token name;
+  Expr initializer;
+  explicit VarStmt(Token const& _name, Expr _initializer)
+    : name(_name)
+    , initializer(std::move(_initializer))
   {}
 };
 

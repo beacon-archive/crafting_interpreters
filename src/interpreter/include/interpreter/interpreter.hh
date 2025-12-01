@@ -11,7 +11,7 @@
 namespace beacon_lox
 {
 
-class Interpreter : public Visitor
+class Interpreter
 {
 public:
   void
@@ -45,7 +45,7 @@ public:
   }
 
   std::any
-  literal_expr_visitor(LiteralExpr* literal) override
+  literal_expr_visitor(LiteralExpr* literal)
   {
     // std::cout << "literal_expr_visitor::literal->literal type:" << literal->literal.index() << "\n";
     // // 这样返回的话, 这里返回的是一个 variant 对象, 而非一个double 类型数值.
@@ -75,7 +75,7 @@ public:
   }
 
   std::any
-  unary_expr_visitor(UnaryExpr* unary) override
+  unary_expr_visitor(UnaryExpr* unary)
   {
     auto value = evaluate(unary->expr);
     switch(unary->token.get_type())
@@ -103,7 +103,7 @@ public:
   }
 
   std::any
-  binary_expr_visitor(BinaryExpr* binary) override
+  binary_expr_visitor(BinaryExpr* binary)
   {
     auto left = evaluate(binary->left);
     auto right = evaluate(binary->right);
@@ -153,9 +153,16 @@ public:
   }
 
   std::any
-  grouping_expr_visitor(GroupingExpr* grouping) override
+  grouping_expr_visitor(GroupingExpr* grouping)
   {
     return evaluate(grouping->expr);
+  }
+
+  std::any
+  var_expr_visitor(VarExpr* /*var*/)
+  {
+    // return evaluate(var->expr);
+    return {};
   }
 
   void
@@ -201,6 +208,83 @@ public:
   }
 
 private:
+  auto
+  operator()(LiteralExprPtr const& liter) -> LoxObject
+  {
+    return std::visit(
+        Overloaded{[](double value) -> LoxObject { return LoxObject{value}; },
+                   [](std::string_view value) -> LoxObject
+                   { return LoxObject{std::string(value)}; },
+                   [](bool value) -> LoxObject
+                   { return value ? LoxObject("true") : LoxObject{"false"}; },
+                   [](auto const&) -> LoxObject { return {}; }},
+        liter->literal);
+  }
+  auto
+  operator()(UnaryExprPtr const& unary) -> LoxObject
+  {
+    auto value = evaluate(unary->expr);
+    switch(unary->token.get_type())
+    {
+      case TokenType::MINUS:
+        try
+        {
+          check_number_operand(unary->token, value);
+          return -std::any_cast<double>(value);
+        }
+        catch(std::exception& e)
+        {
+          // std::cout << "value: " << std::any_cast<std::string>(value)
+          //           << "\n";
+          throw Error::RuntimeError(unary->token, "unary minus must be number");
+        }
+      case TokenType::BANS:
+        // 这里的关键点是, 在 lox 中除了 false 和 nil 是假，其它的都是 true
+        return !is_true(value);
+      default:
+        SPDLOG_ERROR("runtime error, unknown token type");
+        throw Error::RuntimeError(unary->token, "unkown unary operator");
+        // return "runtime error";
+    }
+
+    return std::visit(
+        Overloaded{[](double value) -> LoxObject { return LoxObject{value}; },
+                   [](std::string_view value) -> LoxObject
+                   { return LoxObject{std::string(value)}; },
+                   [](bool value) -> LoxObject
+                   { return value ? LoxObject("true") : LoxObject{"false"}; },
+                   [](auto const&) -> LoxObject { return {}; }},
+        unary->expr);
+  }
+  auto
+  operator()(std::monostate const& /*unary*/) -> LoxObject
+  {
+    return LoxObject{nullptr};
+  }
+  auto
+  operator()(BinaryExprPtr const& /*unary*/) -> LoxObject
+  {
+    return LoxObject{nullptr};
+  }
+  auto
+  operator()(GroupingExprPtr const& /*unary*/) -> LoxObject
+  {
+    return LoxObject{nullptr};
+  }
+  auto
+  operator()(VarExprPtr const& /*unary*/) -> LoxObject
+  {
+    return LoxObject{nullptr};
+  }
+
+  std::any
+  evaluate(Expr const& expr)
+  {
+    // 这里忘记了 variant 的 visit 访问方法, accept 并不是 variant 的, 而是里面的值的
+    // return expr.accept(this);
+    return std::visit(*this, expr);
+  }
+
   void
   execute(Stmt stmt)
   {
@@ -210,37 +294,6 @@ private:
                           { print_stmt_visitor(expr); },
                           [](auto const&) {}},
                stmt);
-  }
-
-  std::any
-  evaluate(Expr const& expr)
-  {
-    // 这里忘记了 variant 的 visit 访问方法, accept 并不是 variant 的, 而是里面的值的
-    // return expr.accept(this);
-    return std::visit(Overloaded{// 专门处理 monostate 的情况
-                                 [](std::monostate) -> std::string
-                                 { return "nil"; },
-                                 // 处理其他所有情况 (指针类型)
-                                 [this](auto const& val) -> std::string
-                                 {
-                                   auto value = val->accept(this);
-                                   //  std::type_info const& ti = value.type();
-                                   //  if(value.type() == typeid(std::string))
-                                   //  {
-                                   //    return std::any_cast<std::string>(value);
-                                   //  }
-                                   //  if(value.type() == typeid(double))
-                                   //  {
-                                   //    auto d = std::any_cast<double>(value);
-                                   //    return std::to_string(d); // 转成字符串
-                                   //  }
-                                   //  std::cerr << "不支持的类型: " << value.type().name()
-                                   //            << std::endl;
-                                   //  return "";
-                                   //  std::cout << "存储的类型: " << ti.name() << '\n';
-                                   return std::any_cast<std::string>(value);
-                                 }},
-                      expr);
   }
 
   std::string

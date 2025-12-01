@@ -9,6 +9,7 @@ namespace beacon_lox
 {
 enum class TokenType
 {
+  UNKNOWN,
   // Single-character tokens.
   // ()
   LEFT_PAREN,
@@ -63,6 +64,9 @@ enum class TokenType
 // literal 是：“这个文本能被解释成的真正值是什么？”
 using Literal = std::variant<std::nullptr_t, std::string_view, double, bool>;
 
+using LoxObject =
+    std::variant<std::monostate, std::string, double, bool, std::nullptr_t>;
+
 class Token
 {
 public:
@@ -76,6 +80,7 @@ public:
   /// @param line
   /// @date 2025-11-17
   //////////////////////////
+  Token() = default;
   explicit Token(TokenType const type,
                  std::string_view const lexeme,
                  Literal const& literal,
@@ -111,13 +116,13 @@ public:
   }
 
 private:
-  TokenType type_;
+  TokenType type_{TokenType::UNKNOWN};
   // 形式区分,  lexis: 词语,单词 -eme: 表示最小单位
   // 最小语义单元的原始字符串表示, 就是 token
   std::string_view lexeme_;
   // 语义, 就是值
   Literal literal_;
-  unsigned int line_;
+  unsigned int line_{};
 };
 
 } // namespace beacon_lox

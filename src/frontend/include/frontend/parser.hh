@@ -40,13 +40,47 @@ public:
     StmtList statements;
     while(!is_at_end())
     {
-      statements.push_back(statement());
+      statements.push_back(declaration());
     }
 
     return statements;
   }
 
 private:
+  // 之所以在 declaration 这里加入同步错误,是为了在声明出现错误时,可以顺利的跳转到下一个语句或声明处
+  auto
+  declaration() -> Stmt
+  {
+    try
+    {
+      if(match(TokenType::VAR))
+      {
+        return {};
+      }
+
+      return statement();
+    }
+    catch(std::exception const& e)
+    {
+      synchronize();
+      return {};
+    }
+  }
+
+  auto
+  var_declaration() -> Stmt
+  {
+    Token name = consume(TokenType::IDENTIFIER, "Expect variable name.");
+
+    Expr initializer;
+    if(match(TokenType::EQUAL))
+    {
+      initializer = expression();
+    }
+    consume(TokenType::SEMICOLON, "Expect ';' after variable declaration.");
+    return std::make_shared<VarStmt>(name, std::move(initializer));
+  }
+
   auto
   statement() -> Stmt
   {
@@ -204,6 +238,10 @@ private:
       auto token = previos();
       return std::make_unique<LiteralExpr>(token.get_literal());
     }
+    if(match(TokenType::IDENTIFIER))
+    {
+      return std::make_unique<VarExpr>(previos());
+    }
     if(match(TokenType::LEFT_PAREN))
     {
       Expr exp = expression();
@@ -215,20 +253,15 @@ private:
   }
 
   auto
-  consume(TokenType const& type, std::string_view sv) -> void
+  consume(TokenType const& type, std::string_view sv) -> Token
   {
     if(check(type))
     {
-      advance();
-      return;
+      return advance();
     }
-    // std::string str;
-
-    // str += "cur type:";
-    // str += std::to_string(static_cast<int>(tokens_[cur_].get_type()));
-    // str += sv;
-    // throw std::runtime_error(str);
     g_error.error(error(peek(), sv));
+
+    throw error(peek(), "Unexpect type");
   }
 
 
@@ -368,14 +401,14 @@ private:
 
   // 昨天自己有个疑问, 如果超过最后一个字符要怎么处理,这里显示了结果
   // 如果已经到了最后了, 不移动 迭代器 就可以了
-  void
+  Token
   advance()
   {
-    if(is_at_end())
+    if(!is_at_end())
     {
-      return;
+      ++cur_;
     }
-    ++cur_;
+    return previos();
   }
 
   std::vector<Token> tokens_;

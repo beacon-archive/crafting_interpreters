@@ -1,5 +1,6 @@
 #include "frontend/parser.hh"
 #include "frontend/scanner.hh"
+#include "ast_visiter.hh"
 
 #include "utils/logger.hh"
 
@@ -44,20 +45,7 @@ main(int /*argc*/, char** /*argv*/)
 
     beacon_lox::ExprVisitor visitor;
     SPDLOG_DEBUG("exp: {}",
-                 std::any_cast<std::string>(std::visit(
-                     [&visitor](auto const& value) -> std::any
-                     {
-                       using T = std::decay_t<decltype(value)>;
-                       if constexpr(std::is_same_v<T, std::monostate>)
-                       {
-                         return {"nil"}; // 或者处理空指针逻辑
-                       }
-                       else
-                       {
-                         return value->accept(&visitor);
-                       }
-                     },
-                     expr)));
+                 std::any_cast<std::string>(std::visit(visitor, expr)));
   }
   catch(std::exception const& e)
   {

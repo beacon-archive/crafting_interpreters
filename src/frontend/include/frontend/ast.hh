@@ -17,6 +17,7 @@
 #include "token.hh"
 #include "utils.hh"
 #include <any>
+#include <iostream>
 #include <list>
 #include <variant>
 #include <memory>
@@ -138,6 +139,7 @@ using UnaryExprPtr = std::unique_ptr<UnaryExpr>;
 using BinaryExprPtr = std::unique_ptr<BinaryExpr>;
 using GroupingExprPtr = std::unique_ptr<GroupingExpr>;
 using VarExprPtr = std::unique_ptr<VarExpr>;
+using AssignablePtr = std::unique_ptr<Assignable>;
 
 // 这种是编译期 多态，默认会构建为 std::monostate
 using Expr = std::variant<LiteralExprPtr,
@@ -146,36 +148,11 @@ using Expr = std::variant<LiteralExprPtr,
                           GroupingExprPtr,
                           VarExprPtr>;
 
-class Visitor
-{
-public:
-  virtual ~Visitor() = default;
-  virtual std::any
-  literal_expr_visitor(LiteralExpr*) = 0;
-  virtual std::any
-  unary_expr_visitor(UnaryExpr*) = 0;
-  virtual std::any
-  binary_expr_visitor(BinaryExpr*) = 0;
-  virtual std::any
-  grouping_expr_visitor(GroupingExpr*) = 0;
-  virtual std::any
-  var_expr_visitor(VarExpr* /*unused*/)
-  {
-    return {};
-  }
-  virtual std::any
-  assian_expr_visitor(Assignable* /*unused*/)
-  {
-    return {};
-  }
-};
 
 class ExprBase : private Uncopyabble
 {
 public:
   virtual ~ExprBase() = default;
-  virtual std::any
-  accept(Visitor* visitor) = 0;
 };
 
 class LiteralExpr : private ExprBase
@@ -185,12 +162,6 @@ public:
   explicit LiteralExpr(Literal _literal)
     : literal(_literal)
   {}
-
-  std::any
-  accept(Visitor* visitor) override
-  {
-    return visitor->literal_expr_visitor(this);
-  }
 };
 
 class BinaryExpr : private ExprBase
@@ -204,12 +175,6 @@ public:
     , token(_token)
     , right(std::move(_right))
   {}
-
-  std::any
-  accept(Visitor* visitor) override
-  {
-    return visitor->binary_expr_visitor(this);
-  }
 };
 
 class UnaryExpr : private ExprBase
@@ -222,11 +187,6 @@ public:
     : token(_token)
     , expr(std::move(_expr))
   {}
-  std::any
-  accept(Visitor* visitor) override
-  {
-    return visitor->unary_expr_visitor(this);
-  }
 };
 
 class Assignable : private ExprBase
@@ -238,11 +198,6 @@ public:
   explicit Assignable(Token const& _name)
     : name(_name)
   {}
-  std::any
-  accept(Visitor* visitor) override
-  {
-    return visitor->assian_expr_visitor(this);
-  }
 };
 class VarExpr : Assignable
 {
@@ -250,11 +205,6 @@ public:
   explicit VarExpr(Token const& _token)
     : Assignable(_token)
   {}
-  std::any
-  accept(Visitor* visitor) override
-  {
-    return visitor->var_expr_visitor(this);
-  }
 };
 
 class GroupingExpr : private ExprBase
@@ -265,91 +215,6 @@ public:
   explicit GroupingExpr(Expr _expr)
     : expr(std::move(_expr))
   {}
-
-  std::any
-  accept(Visitor* visitor) override
-  {
-    return visitor->grouping_expr_visitor(this);
-  }
-};
-
-class ExprVisitor : public Visitor
-{
-public:
-  std::any
-  literal_expr_visitor(LiteralExpr* literal) override
-  {
-    return std::format("({})", literal->literal);
-  }
-
-  // std::any
-  // unary_expr_visitor(UnaryExpr *unary) override {
-  //! 这里的问题是,这里的表达式是一个 variant, 不是一个 Expr, 不能直接调用其 accept 方法
-  //! 这里的替代方案是可以使用一个 函数对象来.
-  //! 忘记了 virant 的 函数对象怎么使用了
-  //! 这里自己的问题, 还是想着根据不同的表达式类别去掉各自的函数....
-  // return std::format("({] {} {}})",
-  //                    unary->op,
-  //                    unary->token.get_lexeme(),
-  //                    std::visit([](const auto &value) -> std::string
-  //                               { return std::format("{}", value); },
-  //                               unary->expr));
-  std::any
-  unary_expr_visitor(UnaryExpr* unary) override
-  {
-    return std::format(
-        "({} {} {})",
-        unary->token.get_type(),
-        unary->token.get_lexeme(),
-        std::visit(
-            Overloaded{// 专门处理 monostate 的情况
-                       [](std::monostate) -> std::string { return "nil"; },
-                       // 处理其他所有情况 (指针类型)
-                       [this](auto const& val) -> std::string {
-                         return std::any_cast<std::string>(val->accept(this));
-                       }},
-            unary->expr));
-  }
-
-  std::any
-  binary_expr_visitor(BinaryExpr* binary) override
-  {
-    return std::format(
-        "({} {} {} {})",
-        binary->token.get_type(),
-        binary->token.get_lexeme(),
-        std::visit(
-            Overloaded{// 专门处理 monostate 的情况
-                       [](std::monostate) -> std::string { return "nil"; },
-                       // 处理其他所有情况 (指针类型)
-                       [this](auto const& val) -> std::string {
-                         return std::any_cast<std::string>(val->accept(this));
-                       }},
-            binary->left),
-        std::visit(
-            Overloaded{// 专门处理 monostate 的情况
-                       [](std::monostate) -> std::string { return "nil"; },
-                       // 处理其他所有情况 (指针类型)
-                       [this](auto const& val) -> std::string {
-                         return std::any_cast<std::string>(val->accept(this));
-                       }},
-            binary->right));
-  }
-
-  std::any
-  grouping_expr_visitor(GroupingExpr* grouping) override
-  {
-    return std::format(
-        "(grouping {})",
-        std::visit(
-            Overloaded{// 专门处理 monostate 的情况
-                       [](std::monostate) -> std::string { return "nil"; },
-                       // 处理其他所有情况 (指针类型)
-                       [this](auto const& val) -> std::string {
-                         return std::any_cast<std::string>(val->accept(this));
-                       }},
-            grouping->expr));
-  }
 };
 
 

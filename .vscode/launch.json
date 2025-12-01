@@ -1,0 +1,41 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "C++ Debug",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/src/frontend/ast", // 替换为你的可执行文件路径
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "miDebuggerPath": "/usr/bin/gdb", // 确保指向正确的 GDB 可执行文件
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ]
+    }
+  ],
+  "justMyCode": true,
+  "skipFiles": [
+    "<*>",
+    "**/c++/**",
+    "**/bits/**",
+    "**/ext/**",
+    "**/usr/include/**"
+  ],
+  "setupCommands": [
+    {
+      "text": "skip -gfi std::*"
+    },
+    {
+      "text": "skip -gfi __gnu_cxx::*"
+    }
+  ]
+}

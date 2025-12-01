@@ -1,0 +1,27 @@
+{
+  "cmake.debugConfig": {
+    "justMyCode": true,
+    "skipFiles": [
+      "<*>",
+      "**/c++/**",
+      "**/bits/**",
+      "**/ext/**",
+      "**/usr/include/**"
+    ],
+    "setupCommands": [
+      {
+        "text": "skip -gfi std::*"
+      },
+      {
+        "text": "skip -gfi __gnu_cxx::*"
+      }
+    ]
+  },
+  "cmake.launchEnvironment": {
+    "MY_CONFIG_PATH": "/workspace/configs",
+    "LD_LIBRARY_PATH": "/workspace/lib"
+  },
+  "terminal.integrated.env.linux": {
+    "LOX_SCIRT_PATH": "/workspace/crafting_interpreters/data/bea.lox",
+  }
+}

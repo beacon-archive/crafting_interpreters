@@ -16,6 +16,12 @@ main(int /*argc*/, char** /*argv*/)
   // std::string_view path{argv[1]};
   std::stringstream ss;
   std::string file_path = "/workspace/ci/data/bea.lox";
+  char const* cfg = std::getenv("LOX_SCIRT_PATH");
+  if(cfg != nullptr)
+  {
+    SPDLOG_INFO("load LOX_SCRIPT_PATH success:{}", cfg);
+    file_path = cfg;
+  }
   std::fstream file(file_path);
   if(!file.is_open())
   {

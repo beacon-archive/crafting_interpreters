@@ -149,49 +149,79 @@ public:
   //   }
   //   return true;
   // }
-
   // std::any
   // grouping_expr_visitor(GroupingExpr* grouping)
   // {
   //   return evaluate(grouping->expr);
   // }
-
-  std::any
-  var_expr_visitor(VarExpr* /*var*/)
-  {
-    // return evaluate(var->expr);
-    return {};
-  }
+  // std::any
+  // var_expr_visitor(VarExpr* /*var*/)
+  // {
+  //   // return evaluate(var->expr);
+  //   return {};
+  // }
+  // void
+  // print_stmt_visitor(Stmt const& stmt)
+  // {
+  //   // 返回的p指向的是 PrintStmtPrt 的指针
+  //   // 所以 p 是一个二级指针! 它不是 std::shared_ptr<PrintStmt>,而是指向这个的指针!
+  //   if(auto const* p = std::get_if<PrintStmtPrt>(&stmt))
+  //   {
+  //     // 自己突然有个疑问,为什么这里不能直接访问 expr ....
+  //     // auto value = evaluate(p->expr);
+  //     // if(*p == nullptr)
+  //     // {
+  //     //   SPDLOG_ERROR("sssssss");
+  //     //   return;
+  //     // }
+  //     auto value = evaluate(p->get()->expr);
+  //     std::cout << to_string(value) << "\n";
+  //   }
+  // }
 
   void
-  print_stmt_visitor(Stmt const& stmt)
+  operator()(PrintStmtPrt const& print_stmt)
   {
     // 返回的p指向的是 PrintStmtPrt 的指针
     // 所以 p 是一个二级指针! 它不是 std::shared_ptr<PrintStmt>,而是指向这个的指针!
-    if(auto const* p = std::get_if<PrintStmtPrt>(&stmt))
-    {
-      // 自己突然有个疑问,为什么这里不能直接访问 expr ....
-      // auto value = evaluate(p->expr);
-      // if(*p == nullptr)
-      // {
-      //   SPDLOG_ERROR("sssssss");
-      //   return;
-      // }
-      auto value = evaluate(p->get()->expr);
-      std::cout << to_string(value) << "\n";
-    }
+
+    // 自己突然有个疑问,为什么这里不能直接访问 expr ....
+    // auto value = evaluate(p->expr);
+    // if(*p == nullptr)
+    // {
+    //   SPDLOG_ERROR("sssssss");
+    //   return;
+    // }
+    auto value = evaluate(print_stmt->expr);
+    std::cout << to_string(value) << "\n";
+  }
+
+  // void
+  // expression_stmt_visitor(Stmt stmt)
+  // {
+  //   if(auto const* p = std::get_if<ExpressionStmtPrt>(&stmt))
+  //   {
+  //     // 自己突然有个疑问,为什么这里不能直接访问 expr ....
+  //     // auto value = evaluate(p->expr);
+  //     evaluate(p->get()->expr);
+  //   }
+  // }
+  void
+  operator()(ExpressionStmtPrt const& expr_stmt)
+  {
+    evaluate(expr_stmt->expr);
   }
 
   void
-  expression_stmt_visitor(Stmt stmt)
+  operator()(VarStmtPrt const& expr_stmt)
   {
-    if(auto const* p = std::get_if<ExpressionStmtPrt>(&stmt))
-    {
-      // 自己突然有个疑问,为什么这里不能直接访问 expr ....
-      // auto value = evaluate(p->expr);
-      evaluate(p->get()->expr);
-    }
+    // evaluate(expr_stmt);
   }
+  // void
+  // operator()(PrintStmtPrt const& expr_stmt)
+  // {
+  //   // evaluate(expr_stmt);
+  // }
 
   [[nodiscard]] bool
   had_runtime_error() const
@@ -253,11 +283,7 @@ public:
                    [](auto const&) -> LoxObject { return {}; }},
         unary->expr);
   }
-  auto
-  operator()(std::monostate const& /*unary*/) -> LoxObject
-  {
-    return LoxObject{nullptr};
-  }
+
   auto
   operator()(BinaryExprPtr const& binary) -> LoxObject
   {
@@ -332,12 +358,7 @@ private:
   void
   execute(Stmt stmt)
   {
-    std::visit(Overloaded{[this](ExpressionStmtPrt const& expr) -> void
-                          { expression_stmt_visitor(expr); },
-                          [this](PrintStmtPrt const& expr) -> void
-                          { print_stmt_visitor(expr); },
-                          [](auto const&) {}},
-               stmt);
+    std::visit(*this, stmt);
   }
 
   std::string

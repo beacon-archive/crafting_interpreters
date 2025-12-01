@@ -51,14 +51,12 @@ to_string(beacon_lox::Expr const& expr)
 {
   switch(expr.index())
   {
+    case 0:
+      return print_literal(std::get<0>(expr));
     case 1:
-      return print_literal(std::get<1>(expr));
+      return print_unary(std::get<1>(expr));
     case 2:
-      return print_unary(std::get<2>(expr));
-    case 3:
-      return print_binary(std::get<3>(expr));
-    case 4:
-      return {"22"};
+      return print_binary(std::get<2>(expr));
     default:
       //error
       return "";

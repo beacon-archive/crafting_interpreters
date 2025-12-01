@@ -151,8 +151,7 @@ using GroupingExprPtr = std::unique_ptr<GroupingExpr>;
 using VarExprPtr = std::unique_ptr<VarExpr>;
 
 // 这种是编译期 多态，默认会构建为 std::monostate
-using Expr = std::variant<std::monostate,
-                          LiteralExprPtr,
+using Expr = std::variant<LiteralExprPtr,
                           UnaryExprPtr,
                           BinaryExprPtr,
                           GroupingExprPtr,
@@ -314,12 +313,12 @@ public:
         unary->token.get_type(),
         unary->token.get_lexeme(),
         std::visit(
-            Overloaded{
-                // 专门处理 monostate 的情况
-                [](std::monostate) -> std::string { return "nil"; },
-                // 处理其他所有情况 (指针类型)
-                [this](auto const& val) -> std::string
-                { return std::any_cast<std::string>(val->accept(this)); }},
+            Overloaded{// 专门处理 monostate 的情况
+                       [](std::monostate) -> std::string { return "nil"; },
+                       // 处理其他所有情况 (指针类型)
+                       [this](auto const& val) -> std::string {
+                         return std::any_cast<std::string>(val->accept(this));
+                       }},
             unary->expr));
   }
 
@@ -331,20 +330,20 @@ public:
         binary->token.get_type(),
         binary->token.get_lexeme(),
         std::visit(
-            Overloaded{
-                // 专门处理 monostate 的情况
-                [](std::monostate) -> std::string { return "nil"; },
-                // 处理其他所有情况 (指针类型)
-                [this](auto const& val) -> std::string
-                { return std::any_cast<std::string>(val->accept(this)); }},
+            Overloaded{// 专门处理 monostate 的情况
+                       [](std::monostate) -> std::string { return "nil"; },
+                       // 处理其他所有情况 (指针类型)
+                       [this](auto const& val) -> std::string {
+                         return std::any_cast<std::string>(val->accept(this));
+                       }},
             binary->left),
         std::visit(
-            Overloaded{
-                // 专门处理 monostate 的情况
-                [](std::monostate) -> std::string { return "nil"; },
-                // 处理其他所有情况 (指针类型)
-                [this](auto const& val) -> std::string
-                { return std::any_cast<std::string>(val->accept(this)); }},
+            Overloaded{// 专门处理 monostate 的情况
+                       [](std::monostate) -> std::string { return "nil"; },
+                       // 处理其他所有情况 (指针类型)
+                       [this](auto const& val) -> std::string {
+                         return std::any_cast<std::string>(val->accept(this));
+                       }},
             binary->right));
   }
 
@@ -354,12 +353,12 @@ public:
     return std::format(
         "(grouping {})",
         std::visit(
-            Overloaded{
-                // 专门处理 monostate 的情况
-                [](std::monostate) -> std::string { return "nil"; },
-                // 处理其他所有情况 (指针类型)
-                [this](auto const& val) -> std::string
-                { return std::any_cast<std::string>(val->accept(this)); }},
+            Overloaded{// 专门处理 monostate 的情况
+                       [](std::monostate) -> std::string { return "nil"; },
+                       // 处理其他所有情况 (指针类型)
+                       [this](auto const& val) -> std::string {
+                         return std::any_cast<std::string>(val->accept(this));
+                       }},
             grouping->expr));
   }
 };
@@ -376,8 +375,7 @@ using ExpressionStmtPrt = std::shared_ptr<ExpressionStmt>;
 using PrintStmtPrt = std::shared_ptr<PrintStmt>;
 using VarStmtPrt = std::shared_ptr<VarStmt>;
 
-using Stmt =
-    std::variant<std::monostate, ExpressionStmtPrt, PrintStmtPrt, VarStmtPrt>;
+using Stmt = std::variant<ExpressionStmtPrt, PrintStmtPrt, VarStmtPrt>;
 
 using StmtList = std::list<Stmt>;
 

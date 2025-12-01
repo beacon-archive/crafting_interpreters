@@ -1,14 +1,14 @@
 # src/scanner/CMakeLists.txt
-add_library(frontend SHARED
+add_library(frontend_lib SHARED
    src/scanner.cc
 )
 
-target_include_directories(frontend PUBLIC
+target_include_directories(frontend_lib PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include/
 )
 
 # 确保spdlog可以被frontend使用
-target_link_libraries(frontend PUBLIC
+target_link_libraries(frontend_lib PUBLIC
     logger_lib
 )
 

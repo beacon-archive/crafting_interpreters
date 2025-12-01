@@ -15,5 +15,5 @@ foreach(execu  IN ITEMS ${executables})
       ${CMAKE_CURRENT_SOURCE_DIR}/include
   )
   
-  target_link_libraries(${execu} PUBLIC frontend error logger_lib)
+  target_link_libraries(${execu} PUBLIC frontend_lib error logger_lib)
 endforeach()

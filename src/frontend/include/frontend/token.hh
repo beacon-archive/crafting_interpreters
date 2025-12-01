@@ -2,6 +2,7 @@
 
 #include <format>
 #include <variant>
+#include <sstream>
 #include <string_view>
 #include <unordered_map>
 
@@ -64,9 +65,50 @@ enum class TokenType
 // literal 是：“这个文本能被解释成的真正值是什么？”
 using Literal = std::variant<std::nullptr_t, std::string_view, double, bool>;
 
+
+using LoxDouble = double;
+using LoxString = std::string;
+using LoxNil = std::nullptr_t;
+using LoxBoolean = bool;
+
 using LoxObject =
     std::variant<std::monostate, std::string, double, bool, std::nullptr_t>;
 
+inline std::string
+to_string(LoxObject const& obj)
+{
+  return std::visit(
+      [](auto&& value) -> std::string
+      {
+        using T = std::decay_t<decltype(value)>;
+
+        if constexpr(std::is_same_v<T, std::monostate>)
+        {
+          return "nil";
+        }
+        if constexpr(std::is_same_v<T, std::nullptr_t>)
+        {
+          return "nil";
+        }
+        if constexpr(std::is_same_v<T, bool>)
+        {
+          return value ? "true" : "false";
+        }
+        if constexpr(std::is_same_v<T, double>)
+        {
+          // 避免小数点后显示 .0
+          std::ostringstream oss;
+          oss << value;
+          return oss.str();
+        }
+        if constexpr(std::is_same_v<T, std::string>)
+        {
+          return value;
+        }
+        throw std::runtime_error("unkown type for LoxObject");
+      },
+      obj);
+}
 class Token
 {
 public:

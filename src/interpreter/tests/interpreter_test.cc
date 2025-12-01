@@ -12,9 +12,10 @@ main(int /*argc*/, char** /*argv*/)
   init_log();
   // std::string_view path{argv[1]};
   std::stringstream ss;
-  std::fstream file("/workspace/crafting_interpreters/bea.lox");
+  std::fstream file("/workspace/ci/bea.lox");
   if(!file.is_open())
   {
+    SPDLOG_ERROR("ERROR: {}", std::strerror(errno));
     return 65;
   }
   ss << file.rdbuf();
@@ -38,7 +39,8 @@ main(int /*argc*/, char** /*argv*/)
     auto expr = par.parse_stmt();
     std::cout << "-------------------------\n";
 
-    beacon_lox::ExprVisitor visitor;
+    // 现在已经不需要使用访问器模式了
+    // beacon_lox::ExprVisitor visitor;
 
     // std::cout << std::format(
     //     "exp: {}\n",

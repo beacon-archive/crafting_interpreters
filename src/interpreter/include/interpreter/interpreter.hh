@@ -8,6 +8,7 @@
 
 #include "utils/logger.hh"
 
+
 namespace beacon_lox
 {
 
@@ -44,119 +45,116 @@ public:
     }
   }
 
-  std::any
-  literal_expr_visitor(LiteralExpr* literal)
-  {
-    // std::cout << "literal_expr_visitor::literal->literal type:" << literal->literal.index() << "\n";
-    // // 这样返回的话, 这里返回的是一个 variant 对象, 而非一个double 类型数值.
-    // !它被自动包装为 std::any 存储一个 std::variant 对象
-    // return literal->literal;
-    // // return 3.0;
+  // std::any
+  // literal_expr_visitor(LiteralExpr* literal)
+  // {
+  //   // std::cout << "literal_expr_visitor::literal->literal type:" << literal->literal.index() << "\n";
+  //   // // 这样返回的话, 这里返回的是一个 variant 对象, 而非一个double 类型数值.
+  //   // !它被自动包装为 std::any 存储一个 std::variant 对象
+  //   // return literal->literal;
+  //   // // return 3.0;
+  //   // std::cout << "literal_expr_visitor::literal->literal index:"
+  //   //           << literal->literal.index() << "\n";
+  //   // 使用 std::visit 提取并返回具体值
+  //   // 所有类型都可以直接包装到 std::any
+  //   // 这样的话,返回的类型就不是统一的 string 了,可能是double,可能是string...
+  //   // return std::visit([](auto const& value) -> std::any
+  //   //                   { return std::any{value}; },
+  //   //                   literal->literal);
+  //   return std::visit(Overloaded{[](double const& value) -> std::any
+  //                                { return std::to_string(value); },
+  //                                [](bool const& value) -> std::any
+  //                                { return value ? "true" : "false"; },
+  //                                [](std::string_view const& value) -> std::any
+  //                                { return std::string(value); },
+  //                                [](auto const& value) -> std::any
+  //                                { return std::any{value}; }},
+  //                     literal->literal);
+  // }
 
-    // std::cout << "literal_expr_visitor::literal->literal index:"
-    //           << literal->literal.index() << "\n";
+  // std::any
+  // unary_expr_visitor(UnaryExpr* unary)
+  // {
+  //   auto value = evaluate(unary->expr);
+  //   switch(unary->token.get_type())
+  //   {
+  //     case TokenType::MINUS:
+  //       try
+  //       {
+  //         check_number_operand(unary->token, value);
+  //         return -std::any_cast<double>(value);
+  //       }
+  //       catch(std::exception& e)
+  //       {
+  //         // std::cout << "value: " << std::any_cast<std::string>(value)
+  //         //           << "\n";
+  //         throw Error::RuntimeError(unary->token, "unary minus must be number");
+  //       }
+  //     case TokenType::BANS:
+  //       // 这里的关键点是, 在 lox 中除了 false 和 nil 是假，其它的都是 true
+  //       return !is_true(value);
+  //     default:
+  //       SPDLOG_ERROR("runtime error, unknown token type");
+  //       throw Error::RuntimeError(unary->token, "unkown unary operator");
+  //       // return "runtime error";
+  //   }
+  // }
 
-    // 使用 std::visit 提取并返回具体值
-    // 所有类型都可以直接包装到 std::any
-    // 这样的话,返回的类型就不是统一的 string 了,可能是double,可能是string...
-    // return std::visit([](auto const& value) -> std::any
-    //                   { return std::any{value}; },
-    //                   literal->literal);
+  // std::any
+  // binary_expr_visitor(BinaryExpr* binary)
+  // {
+  //   auto left = evaluate(binary->left);
+  //   auto right = evaluate(binary->right);
+  //   switch(binary->token.get_type())
+  //   {
+  //     case TokenType::PLUS:
+  //       if(is_type<double>(left) && is_type<double>(right))
+  //       {
+  //         return std::any_cast<double>(left) + std::any_cast<double>(right);
+  //       }
+  //       if(is_type<std::string>(left) && is_type<std::string>(right))
+  //       {
+  //         return std::any_cast<std::string>(left) +
+  //                std::any_cast<std::string>(right);
+  //       }
+  //       throw Error::RuntimeError(binary->token, "oprand must be two strings!");
+  //       break;
+  //     case TokenType::BANG_EQUAL:
+  //       return !is_equal(left, right);
+  //     case TokenType::EQUAL_EQUAL:
+  //       return is_equal(left, right);
+  //     case TokenType::MINUS:
+  //       check_number_operand(binary->token, left, right);
+  //       return std::any_cast<double>(left) - std::any_cast<double>(right);
+  //     case TokenType::SLASH:
+  //       check_number_operand(binary->token, left, right);
+  //       return std::any_cast<double>(left) / std::any_cast<double>(right);
+  //     case TokenType::STAR:
+  //       check_number_operand(binary->token, left, right);
+  //       return std::any_cast<double>(left) * std::any_cast<double>(right);
+  //     case TokenType::GREATER:
+  //       check_number_operand(binary->token, left, right);
+  //       return std::any_cast<double>(left) > std::any_cast<double>(right);
+  //     case TokenType::GREATER_EQUAL:
+  //       check_number_operand(binary->token, left, right);
+  //       return std::any_cast<double>(left) >= std::any_cast<double>(right);
+  //     case TokenType::LESS:
+  //       check_number_operand(binary->token, left, right);
+  //       return std::any_cast<double>(left) < std::any_cast<double>(right);
+  //     case TokenType::LESS_EQUAL:
+  //       check_number_operand(binary->token, left, right);
+  //       return std::any_cast<double>(left) <= std::any_cast<double>(right);
+  //       break;
+  //       // 剩下的那些，可以先不考虑
+  //   }
+  //   return true;
+  // }
 
-    return std::visit(Overloaded{[](double const& value) -> std::any
-                                 { return std::to_string(value); },
-                                 [](bool const& value) -> std::any
-                                 { return value ? "true" : "false"; },
-                                 [](std::string_view const& value) -> std::any
-                                 { return std::string(value); },
-                                 [](auto const& value) -> std::any
-                                 { return std::any{value}; }},
-                      literal->literal);
-  }
-
-  std::any
-  unary_expr_visitor(UnaryExpr* unary)
-  {
-    auto value = evaluate(unary->expr);
-    switch(unary->token.get_type())
-    {
-      case TokenType::MINUS:
-        try
-        {
-          check_number_operand(unary->token, value);
-          return -std::any_cast<double>(value);
-        }
-        catch(std::exception& e)
-        {
-          // std::cout << "value: " << std::any_cast<std::string>(value)
-          //           << "\n";
-          throw Error::RuntimeError(unary->token, "unary minus must be number");
-        }
-      case TokenType::BANS:
-        // 这里的关键点是, 在 lox 中除了 false 和 nil 是假，其它的都是 true
-        return !is_true(value);
-      default:
-        SPDLOG_ERROR("runtime error, unknown token type");
-        throw Error::RuntimeError(unary->token, "unkown unary operator");
-        // return "runtime error";
-    }
-  }
-
-  std::any
-  binary_expr_visitor(BinaryExpr* binary)
-  {
-    auto left = evaluate(binary->left);
-    auto right = evaluate(binary->right);
-    switch(binary->token.get_type())
-    {
-      case TokenType::PLUS:
-        if(is_type<double>(left) && is_type<double>(right))
-        {
-          return std::any_cast<double>(left) + std::any_cast<double>(right);
-        }
-        if(is_type<std::string>(left) && is_type<std::string>(right))
-        {
-          return std::any_cast<std::string>(left) +
-                 std::any_cast<std::string>(right);
-        }
-        throw Error::RuntimeError(binary->token, "oprand must be two strings!");
-        break;
-      case TokenType::BANG_EQUAL:
-        return !is_equal(left, right);
-      case TokenType::EQUAL_EQUAL:
-        return is_equal(left, right);
-      case TokenType::MINUS:
-        check_number_operand(binary->token, left, right);
-        return std::any_cast<double>(left) - std::any_cast<double>(right);
-      case TokenType::SLASH:
-        check_number_operand(binary->token, left, right);
-        return std::any_cast<double>(left) / std::any_cast<double>(right);
-      case TokenType::STAR:
-        check_number_operand(binary->token, left, right);
-        return std::any_cast<double>(left) * std::any_cast<double>(right);
-      case TokenType::GREATER:
-        check_number_operand(binary->token, left, right);
-        return std::any_cast<double>(left) > std::any_cast<double>(right);
-      case TokenType::GREATER_EQUAL:
-        check_number_operand(binary->token, left, right);
-        return std::any_cast<double>(left) >= std::any_cast<double>(right);
-      case TokenType::LESS:
-        check_number_operand(binary->token, left, right);
-        return std::any_cast<double>(left) < std::any_cast<double>(right);
-      case TokenType::LESS_EQUAL:
-        check_number_operand(binary->token, left, right);
-        return std::any_cast<double>(left) <= std::any_cast<double>(right);
-        break;
-        // 剩下的那些，可以先不考虑
-    }
-    return true;
-  }
-
-  std::any
-  grouping_expr_visitor(GroupingExpr* grouping)
-  {
-    return evaluate(grouping->expr);
-  }
+  // std::any
+  // grouping_expr_visitor(GroupingExpr* grouping)
+  // {
+  //   return evaluate(grouping->expr);
+  // }
 
   std::any
   var_expr_visitor(VarExpr* /*var*/)
@@ -180,7 +178,7 @@ public:
       //   return;
       // }
       auto value = evaluate(p->get()->expr);
-      std::cout << std::any_cast<std::string>(value) << "\n";
+      std::cout << to_string(value) << "\n";
     }
   }
 
@@ -207,7 +205,6 @@ public:
     return had_error_;
   }
 
-private:
   auto
   operator()(LiteralExprPtr const& liter) -> LoxObject
   {
@@ -262,9 +259,55 @@ private:
     return LoxObject{nullptr};
   }
   auto
-  operator()(BinaryExprPtr const& /*unary*/) -> LoxObject
+  operator()(BinaryExprPtr const& binary) -> LoxObject
   {
-    return LoxObject{nullptr};
+    auto const& left = evaluate(binary->left);
+    auto const& right = evaluate(binary->right);
+
+    switch(binary->token.get_type())
+    {
+      case TokenType::PLUS:
+        if(is_type<double>(left) && is_type<double>(right))
+        {
+          return std::get<LoxDouble>(left) + std::get<LoxDouble>(right);
+        }
+        if(is_type<std::string>(left) && is_type<std::string>(right))
+        {
+          return std::get<LoxString>(left) + std::get<LoxString>(right);
+        }
+        throw Error::RuntimeError(
+            binary->token,
+            "Operands must be two strings or two numbers!");
+        break;
+      case TokenType::BANG_EQUAL:
+        return !is_equal(left, right);
+      case TokenType::EQUAL_EQUAL:
+        return is_equal(left, right);
+      case TokenType::MINUS:
+        check_number_operand(binary->token, left, right);
+        return std::any_cast<double>(left) - std::any_cast<double>(right);
+      case TokenType::SLASH:
+        check_number_operand(binary->token, left, right);
+        return std::any_cast<double>(left) / std::any_cast<double>(right);
+      case TokenType::STAR:
+        check_number_operand(binary->token, left, right);
+        return std::any_cast<double>(left) * std::any_cast<double>(right);
+      case TokenType::GREATER:
+        check_number_operand(binary->token, left, right);
+        return std::any_cast<double>(left) > std::any_cast<double>(right);
+      case TokenType::GREATER_EQUAL:
+        check_number_operand(binary->token, left, right);
+        return std::any_cast<double>(left) >= std::any_cast<double>(right);
+      case TokenType::LESS:
+        check_number_operand(binary->token, left, right);
+        return std::any_cast<double>(left) < std::any_cast<double>(right);
+      case TokenType::LESS_EQUAL:
+        check_number_operand(binary->token, left, right);
+        return std::any_cast<double>(left) <= std::any_cast<double>(right);
+        break;
+        // 剩下的那些，可以先不考虑
+    }
+    return true;
   }
   auto
   operator()(GroupingExprPtr const& /*unary*/) -> LoxObject
@@ -277,8 +320,9 @@ private:
     return LoxObject{nullptr};
   }
 
-  std::any
-  evaluate(Expr const& expr)
+private:
+  auto
+  evaluate(Expr const& expr) -> LoxObject
   {
     // 这里忘记了 variant 的 visit 访问方法, accept 并不是 variant 的, 而是里面的值的
     // return expr.accept(this);

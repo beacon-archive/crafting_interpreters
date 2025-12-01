@@ -171,7 +171,10 @@ public:
   virtual std::any
   grouping_expr_visitor(GroupingExpr*) = 0;
   virtual std::any
-  var_expr_visitor(VarExpr*) = 0;
+  var_expr_visitor(VarExpr* /*unused*/)
+  {
+    return {};
+  }
   virtual std::any
   assian_expr_visitor(Assignable* /*unused*/)
   {

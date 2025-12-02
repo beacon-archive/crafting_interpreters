@@ -47,30 +47,7 @@ public:
     }
   }
 
-  void
-  operator()(PrintStmtPrt const& print_stmt);
 
-  // void
-  // expression_stmt_visitor(Stmt stmt)
-  // {
-  //   if(auto const* p = std::get_if<ExpressionStmtPrt>(&stmt))
-  //   {
-  //     // 自己突然有个疑问,为什么这里不能直接访问 expr ....
-  //     // auto value = evaluate(p->expr);
-  //     evaluate(p->get()->expr);
-  //   }
-  // }
-  void
-  operator()(ExpressionStmtPrt const& expr_stmt)
-  {
-    evaluate(expr_stmt->expr);
-  }
-
-  void
-  operator()(VarStmtPrt const& expr_stmt)
-  {
-    // evaluate(expr_stmt);
-  }
 
   [[nodiscard]] bool
   had_runtime_error() const
@@ -84,9 +61,33 @@ public:
     return had_error_;
   }
 
+  // void
+  // expression_stmt_visitor(Stmt stmt)
+  // {
+  //   if(std::shared_ptr<beacon_lox::ExpressionStmt> const* p =
+  //          std::get_if<ExpressionStmtPrt>(&stmt))
+  //   {
+  //     // p 的类型是 std::shared_ptr<beacon_lox::ExpressionStmt> const *
+  //     // 自己突然有个疑问,为什么这里不能直接访问 expr ....
+  //     // 这里自己之前以为是一个裸指针,实际上并不是...
+  //     // auto value = evaluate(p->expr);
+  //     evaluate(p->get()->expr);
+  //   }
+  // }
+  void
+  operator()(ExpressionStmtPrt const& expr_stmt)
+  {
+    evaluate(expr_stmt->expr);
+  }
+  void
+  operator()(PrintStmtPrt const& print_stmt);
+  void
+  operator()(VarStmtPrt const& expr_stmt)
+  {
+    // evaluate(expr_stmt);
+  }
   auto
   operator()(LiteralExprPtr const& liter) -> LoxObject;
-
   auto
   operator()(UnaryExprPtr const& unary) -> LoxObject;
   auto

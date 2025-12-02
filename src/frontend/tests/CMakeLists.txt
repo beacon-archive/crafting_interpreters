@@ -1,13 +1,13 @@
 # src/frontend/tests/CMakeLists.txt
 add_executable(scanner_test scanner_test.cc)
 add_executable(ast_test ast_print.cc ast_visiter.cc)
-add_executable(parser parser_test.cc ast_visiter.cc)
+add_executable(parser_test parser_test.cc ast_visiter.cc)
 
 
 set(executables
   scanner_test
   ast_test
-  parser
+  parser_test
 )
 
 foreach(execu  IN ITEMS ${executables})

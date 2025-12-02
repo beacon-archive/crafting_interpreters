@@ -69,4 +69,15 @@ private:
 // 全局错误实例（可选，方便使用宏）
 extern Error g_error;
 
+
+struct RuntimeError final : public std::runtime_error
+{
+  Token token;
+  explicit RuntimeError(Token const& _token, std::string const& message)
+    : std::runtime_error(message)
+    , token(_token)
+  {}
+};
+
+
 } // namespace beacon_lox

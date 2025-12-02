@@ -5,6 +5,8 @@
 #include "ast.hh"
 #include "token.hh"
 
+#include "utils/logger.hh"
+
 
 namespace beacon_lox
 {
@@ -40,7 +42,11 @@ public:
     StmtList statements;
     while(!is_at_end())
     {
-      statements.push_back(declaration());
+      // statements.push_back(declaration());
+      if(auto decl = declaration(); decl.has_value())
+      {
+        statements.push_back(std::move(decl.value()));
+      }
     }
 
     return statements;
@@ -48,8 +54,11 @@ public:
 
 private:
   // 之所以在 declaration 这里加入同步错误,是为了在声明出现错误时,可以顺利的跳转到下一个语句或声明处
+  // 今天遇到一个问题,当有语法错误时, 比如语句后面忘记了加 ;
+  // 则会导致这里返回一个 nullptr, 引起段错误
+  // 这里应该选用 optional
   auto
-  declaration() -> Stmt
+  declaration() -> std::optional<Stmt>
   {
     try
     {
@@ -58,12 +67,13 @@ private:
         return {};
       }
 
-      return statement();
+      return std::make_optional<Stmt>(statement());
     }
     catch(std::exception const& e)
     {
       synchronize();
-      return {};
+      SPDLOG_ERROR(e.what());
+      return std::nullopt;
     }
   }
 

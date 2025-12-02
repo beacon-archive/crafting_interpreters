@@ -4,6 +4,7 @@
 #include "frontend/error.hh"
 
 #include "interpreter/lox_object.hh"
+#include "interpreter/environment.hh"
 
 
 
@@ -138,6 +139,8 @@ private:
 
   bool had_runtime_error_{false};
   bool had_error_{false};
+  EnvironmentPrt global_{std::make_shared<Environment>()};
+  EnvironmentPrt environment_{global_};
 };
 } // namespace beacon_lox
 

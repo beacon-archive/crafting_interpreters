@@ -21,6 +21,19 @@ Interpreter::operator()(PrintStmtPrt const& print_stmt)
   std::cout << to_string(value) << "\n";
 }
 
+void
+Interpreter::operator()(ExpressionStmtPrt const& expr_stmt)
+{
+  evaluate(expr_stmt->expr);
+}
+
+void
+Interpreter::operator()(VarStmtPrt const& expr_stmt)
+{
+  LoxObject const value = evaluate(expr_stmt->initializer);
+  environment_->define(expr_stmt->name.get_lexeme(), value);
+}
+
 auto
 Interpreter::operator()(LiteralExprPtr const& liter) -> LoxObject
 {
@@ -75,19 +88,27 @@ auto
 Interpreter::operator()(BinaryExprPtr const& binary) -> LoxObject
 {
   auto const& left = evaluate(binary->left);
+
   auto const& right = evaluate(binary->right);
+  std::cout << to_string(left) << "\n";
+  std::cout << to_string(right) << "\n";
 
   switch(binary->token.get_type())
   {
     case TokenType::PLUS:
-      if(is_type<double>(left) && is_type<double>(right))
+      if(std::holds_alternative<LoxDouble>(left) &&
+         std::holds_alternative<LoxDouble>(right))
       {
         return std::get<LoxDouble>(left) + std::get<LoxDouble>(right);
       }
-      if(is_type<std::string>(left) && is_type<std::string>(right))
+      if(std::holds_alternative<LoxString>(left) &&
+         std::holds_alternative<LoxString>(right))
       {
+        SPDLOG_WARN("0000");
+
         return std::get<LoxString>(left) + std::get<LoxString>(right);
       }
+
       throw Error::RuntimeError(binary->token,
                                 "Operands must be two strings or two numbers!");
       break;
@@ -129,9 +150,9 @@ Interpreter::operator()(GroupingExprPtr const& /*unary*/) -> LoxObject
 }
 
 auto
-Interpreter::operator()(VarExprPtr const& /*unary*/) -> LoxObject
+Interpreter::operator()(VarExprPtr const& var_expr) -> LoxObject
 {
-  return LoxObject{nullptr};
+  return environment_->get(var_expr.get()->name);
 }
 
 bool

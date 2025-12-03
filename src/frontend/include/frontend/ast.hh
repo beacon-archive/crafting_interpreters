@@ -199,7 +199,7 @@ public:
     : name(_name)
   {}
 };
-class VarExpr : Assignable
+class VarExpr : public Assignable
 {
 public:
   explicit VarExpr(Token const& _token)

@@ -12,6 +12,7 @@ set(CMAKE_BUILD_TYPE Debug)
 add_library(interpreter_lib SHARED 
   src/interpreter.cc
   src/lox_object.cc
+  src/environment.cc
 )
 
 target_include_directories(interpreter_lib PUBLIC

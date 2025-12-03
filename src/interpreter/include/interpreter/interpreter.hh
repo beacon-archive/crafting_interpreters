@@ -76,17 +76,11 @@ public:
   //   }
   // }
   void
-  operator()(ExpressionStmtPrt const& expr_stmt)
-  {
-    evaluate(expr_stmt->expr);
-  }
+  operator()(ExpressionStmtPrt const& expr_stmt);
   void
   operator()(PrintStmtPrt const& print_stmt);
   void
-  operator()(VarStmtPrt const& expr_stmt)
-  {
-    // evaluate(expr_stmt);
-  }
+  operator()(VarStmtPrt const& expr_stmt);
   auto
   operator()(LiteralExprPtr const& liter) -> LoxObject;
   auto

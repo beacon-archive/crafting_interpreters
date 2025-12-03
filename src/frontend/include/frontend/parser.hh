@@ -64,7 +64,7 @@ private:
     {
       if(match(TokenType::VAR))
       {
-        return {};
+        return var_declaration();
       }
 
       return std::make_optional<Stmt>(statement());

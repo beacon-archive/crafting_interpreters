@@ -54,20 +54,19 @@ Interpreter::operator()(UnaryExprPtr const& unary) -> LoxObject
   switch(unary->token.get_type())
   {
     case TokenType::MINUS:
-      try
+      if(std::holds_alternative<LoxDouble>(value))
       {
-        check_number_operand(unary->token, value);
-        return -std::any_cast<double>(value);
+        return -std::get<LoxDouble>(value);
       }
-      catch(std::exception& e)
-      {
-        // std::cout << "value: " << std::any_cast<std::string>(value)
-        //           << "\n";
-        throw Error::RuntimeError(unary->token, "unary minus must be number");
-      }
+      throw Error::RuntimeError(unary->token, "unary minus must be number");
+      break;
     case TokenType::BANS:
       // 这里的关键点是, 在 lox 中除了 false 和 nil 是假，其它的都是 true
-      return !is_true(value);
+      return std::visit(Overloaded{[](auto const&) -> bool { return true; },
+                                   [](bool value) { return value; },
+                                   [](std::nullptr_t /*value*/)
+                                   { return false; }},
+                        value);
     default:
       SPDLOG_ERROR("runtime error, unknown token type");
       throw Error::RuntimeError(unary->token, "unkown unary operator");
@@ -90,8 +89,6 @@ Interpreter::operator()(BinaryExprPtr const& binary) -> LoxObject
   auto const& left = evaluate(binary->left);
 
   auto const& right = evaluate(binary->right);
-  std::cout << to_string(left) << "\n";
-  std::cout << to_string(right) << "\n";
 
   switch(binary->token.get_type())
   {
@@ -104,39 +101,37 @@ Interpreter::operator()(BinaryExprPtr const& binary) -> LoxObject
       if(std::holds_alternative<LoxString>(left) &&
          std::holds_alternative<LoxString>(right))
       {
-        SPDLOG_WARN("0000");
-
         return std::get<LoxString>(left) + std::get<LoxString>(right);
       }
-
       throw Error::RuntimeError(binary->token,
                                 "Operands must be two strings or two numbers!");
-      break;
     case TokenType::BANG_EQUAL:
       return !is_equal(left, right);
     case TokenType::EQUAL_EQUAL:
       return is_equal(left, right);
     case TokenType::MINUS:
       check_number_operand(binary->token, left, right);
-      return std::any_cast<double>(left) - std::any_cast<double>(right);
+      return std::get<LoxDouble>(left) - std::get<LoxDouble>(right);
     case TokenType::SLASH:
       check_number_operand(binary->token, left, right);
-      return std::any_cast<double>(left) / std::any_cast<double>(right);
+      return std::get<LoxDouble>(left) / std::get<LoxDouble>(right);
     case TokenType::STAR:
       check_number_operand(binary->token, left, right);
-      return std::any_cast<double>(left) * std::any_cast<double>(right);
+      return std::get<LoxDouble>(left) * std::get<LoxDouble>(right);
     case TokenType::GREATER:
       check_number_operand(binary->token, left, right);
-      return std::any_cast<double>(left) > std::any_cast<double>(right);
+      return std::get<LoxDouble>(left) > std::get<LoxDouble>(right);
     case TokenType::GREATER_EQUAL:
       check_number_operand(binary->token, left, right);
-      return std::any_cast<double>(left) >= std::any_cast<double>(right);
+      return std::get<LoxDouble>(left) >= std::get<LoxDouble>(right);
     case TokenType::LESS:
       check_number_operand(binary->token, left, right);
-      return std::any_cast<double>(left) < std::any_cast<double>(right);
+      return std::get<LoxDouble>(left) < std::get<LoxDouble>(right);
     case TokenType::LESS_EQUAL:
       check_number_operand(binary->token, left, right);
-      return std::any_cast<double>(left) <= std::any_cast<double>(right);
+      return std::get<LoxDouble>(left) <= std::get<LoxDouble>(right);
+      break;
+    default:
       break;
       // 剩下的那些，可以先不考虑
   }
@@ -156,45 +151,39 @@ Interpreter::operator()(VarExprPtr const& var_expr) -> LoxObject
 }
 
 bool
-Interpreter::is_equal(std::any const& left, std::any const& right)
+Interpreter::is_equal(LoxObject const& left, LoxObject const& right)
 {
   // 1. 两个都是空值（std::nullptr_t）
-  if(is_type<std::nullptr_t>(left) && is_type<std::nullptr_t>(right))
+  if(std::holds_alternative<std::nullptr_t>(left) &&
+     std::holds_alternative<std::nullptr_t>(right))
   {
     return true;
   }
   // 2. 只有一个为空值
-  if(is_type<std::nullptr_t>(left) || is_type<std::nullptr_t>(right))
+  if(std::holds_alternative<std::nullptr_t>(left) ||
+     std::holds_alternative<std::nullptr_t>(right))
   {
     return false;
   }
   // 3. 类型不同
-  if(left.type() != right.type())
+  if(left.index() != right.index())
   {
     return false;
   }
   // 4. 类型相同，比较值
   // 为了支持多种类型，这里需要针对具体类型进行 any_cast 并比较
   // 示例：假设支持 int、double、std::string 类型
-  try
+
+  if(std::holds_alternative<double>(left))
   {
-    if(is_type<double>(left))
-    {
-      return std::any_cast<double>(left) == std::any_cast<double>(right);
-    }
-    if(is_type<std::string>(left))
-    {
-      return std::any_cast<std::string>(left) ==
-             std::any_cast<std::string>(right);
-    }
-    // 可以根据需要添加更多类型支持
-    // 如果类型不支持比较，抛出异常或返回 false
-    return false;
+    return std::get<LoxDouble>(left) == std::get<LoxDouble>(right);
   }
-  catch(std::bad_any_cast const&)
+  if(std::holds_alternative<std::string>(left))
   {
-    return false; // 转换失败时返回 false
+    return std::get<LoxString>(left) == std::get<LoxString>(right);
   }
+  // 其它未知类型
+  return false; // 转换失败时返回 false
 }
 
 template <typename T>
@@ -205,9 +194,9 @@ Interpreter::is_type(std::any const& any)
 }
 
 void
-Interpreter::check_number_operand(Token const& token, std::any const& operand)
+Interpreter::check_number_operand(Token const& token, LoxObject const& operand)
 {
-  if(is_type<double>(operand))
+  if(std::holds_alternative<LoxDouble>(operand))
   {
     return;
   }
@@ -217,10 +206,11 @@ Interpreter::check_number_operand(Token const& token, std::any const& operand)
 
 void
 Interpreter::check_number_operand(Token const& token,
-                                  std::any const& left,
-                                  std::any const& right)
+                                  LoxObject const& left,
+                                  LoxObject const& right)
 {
-  if(is_type<double>(left) && is_type<double>(right))
+  if(std::holds_alternative<LoxDouble>(left) &&
+     std::holds_alternative<LoxDouble>(right))
   {
     return;
   }
@@ -237,45 +227,22 @@ Interpreter::runtime_error(Error::RuntimeError const& rerr)
   had_runtime_error_ = true;
 }
 
-
-
-std::string
-Interpreter::stringify(std::any any)
-{
-  if(is_type<std::nullptr_t>(any))
-  {
-    return "nil";
-  }
-
-  if(is_type<double>(any))
-  {
-    return std::to_string(std::any_cast<double>(any));
-  }
-
-  if(is_type<bool>(any))
-  {
-    return std::any_cast<bool>(any) ? "ture" : "false";
-  }
-
-  return std::any_cast<std::string>(any);
-}
-
 // 除了 nullptr 或者 false, 其它任何的东西都是 true
-bool
-Interpreter::is_true(std::any value)
-{
-  if(is_type<std::nullptr_t>(value))
-  {
-    return false;
-  }
+// bool
+// Interpreter::is_true(std::any value)
+// {
+//   if(is_type<std::nullptr_t>(value))
+//   {
+//     return false;
+//   }
 
-  if(is_type<bool>(value))
-  {
-    return std::any_cast<bool>(value);
-  }
+//   if(is_type<bool>(value))
+//   {
+//     return std::any_cast<bool>(value);
+//   }
 
-  return true;
-}
+//   return true;
+// }
 
 
 } // namespace beacon_lox

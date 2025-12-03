@@ -24,7 +24,7 @@ public:
     try
     {
       auto value = evaluate(expr);
-      SPDLOG_DEBUG("result: {}", stringify(value));
+      SPDLOG_DEBUG("result: {}", to_string(value));
     }
     catch(Error::RuntimeError const& e)
     {
@@ -107,26 +107,23 @@ private:
     std::visit(*this, stmt);
   }
 
-  std::string
-  stringify(std::any any);
-
   // 除了 nullptr 或者 false, 其它任何的东西都是 true
-  bool
-  is_true(std::any value);
+  // bool
+  // is_true(std::any value);
 
   // 这里的类型比较值得自己认真学习一下～
   bool
-  is_equal(std::any const& left, std::any const& right);
+  is_equal(LoxObject const& left, LoxObject const& right);
 
   template <typename T>
   bool
   is_type(std::any const& any);
   void
-  check_number_operand(Token const& token, std::any const& operand);
+  check_number_operand(Token const& token, LoxObject const& operand);
   void
   check_number_operand(Token const& token,
-                       std::any const& left,
-                       std::any const& right);
+                       LoxObject const& left,
+                       LoxObject const& right);
 
   void
   runtime_error(Error::RuntimeError const& rerr);

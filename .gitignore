@@ -34,11 +34,10 @@
 
 build/*
 .cache/*
-.*
+# .*
 !.gitignore
 !.clang-format
 !.clang-tidy
 data
-# tests
 tests/*
 logs/*
